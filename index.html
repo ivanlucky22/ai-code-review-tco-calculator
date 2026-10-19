@@ -4,29 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Code Review Build-vs-Buy TCO Calculator</title>
-  <meta name="description" content="Calculate your 12-month Total Cost of Ownership (TCO) for AI Code Review: Vendor Seat Licenses vs. Internal CI Agent Build + AI Ops Maintenance." />
+  <meta name="description" content="12-month Total Cost of Ownership (TCO) calculator for AI Code Review: Vendor Seat Licenses vs. Internal CI Agent + AI Ops Maintenance." />
   <style>
     :root {
-      --bg: #0b0f17;
-      --bg-card: #131a27;
-      --bg-input: #0d131f;
-      --border: #243046;
-      --border-subtle: #1b2537;
-      --text: #e6edf7;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.12);
-      --emerald: #10b981;
-      --emerald-soft: rgba(16, 185, 129, 0.14);
-      --amber: #f59e0b;
-      --amber-soft: rgba(245, 158, 11, 0.14);
-      --rose: #f43f5e;
-      --rose-soft: rgba(244, 63, 94, 0.14);
-      --indigo: #818cf8;
-      --radius: 8px;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --dim: #64748b;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-border: #bfdbfe;
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --rose: #e11d48;
+      --rose-bg: #fff1f2;
+      --rose-border: #fecdd3;
+      --radius: 10px;
       --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-      --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,533 +37,431 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--font);
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 13.5px;
+      line-height: 1.45;
       -webkit-font-smoothing: antialiased;
     }
 
     .container {
-      max-width: 1240px;
+      max-width: 1060px;
       margin: 0 auto;
-      padding: 0.75rem 1rem 1.5rem;
+      padding: 1.25rem 1rem 2rem;
     }
 
-    /* Compact Top Bar */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 0.75rem;
-      padding-bottom: 0.65rem;
-      margin-bottom: 0.75rem;
+      padding-bottom: 0.85rem;
+      margin-bottom: 1rem;
       border-bottom: 1px solid var(--border);
     }
 
-    .brand {
-      display: flex;
-      align-items: baseline;
-      gap: 0.65rem;
-      flex-wrap: wrap;
-    }
-
     h1 {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
 
-    .tag-subtitle {
-      font-size: 0.76rem;
-      color: var(--text-muted);
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
     }
 
-    .top-actions {
+    .actions {
       display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      flex-wrap: wrap;
+      gap: 0.45rem;
     }
 
     .btn {
-      background: var(--bg-card);
-      color: var(--text-muted);
+      background: var(--card);
+      color: var(--muted);
       border: 1px solid var(--border);
-      padding: 0.32rem 0.65rem;
+      padding: 0.38rem 0.7rem;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.12s;
     }
 
     .btn:hover {
-      border-color: var(--accent);
-      color: var(--text);
+      border-color: var(--blue);
+      color: var(--blue);
     }
 
     .btn-primary {
-      background: var(--accent);
-      color: #06101e;
-      border-color: var(--accent);
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
     }
 
     .btn-primary:hover {
-      background: #7dd3fc;
-      color: #06101e;
+      background: #1d4ed8;
+      color: #fff;
     }
 
-    /* Main 2-Col Compact Layout */
-    .grid-main {
+    .layout {
       display: grid;
-      grid-template-columns: 370px 1fr;
-      gap: 0.85rem;
+      grid-template-columns: 340px 1fr;
+      gap: 1rem;
       align-items: start;
     }
 
-    @media (max-width: 900px) {
-      .grid-main { grid-template-columns: 1fr; }
+    @media (max-width: 840px) {
+      .layout { grid-template-columns: 1fr; }
     }
 
     .card {
-      background: var(--bg-card);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.75rem 0.85rem;
-      margin-bottom: 0.75rem;
+      padding: 0.9rem 1rem;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      margin-bottom: 0.85rem;
     }
 
     .card:last-child { margin-bottom: 0; }
 
-    .card-header {
+    .section-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--dim);
+      margin-bottom: 0.6rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.55rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .card-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted);
+    /* Readiness Gate Segmented Toggle */
+    .gate-opts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
     }
 
-    .pill {
-      display: inline-flex;
+    .gate-btn {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .gate-btn.active {
+      background: var(--blue-bg);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .badge {
+      display: inline-block;
       padding: 0.12rem 0.45rem;
-      border-radius: 999px;
+      border-radius: 99px;
       font-size: 0.68rem;
       font-weight: 700;
       font-family: var(--mono);
     }
 
-    .pill-pass { background: var(--emerald-soft); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
-    .pill-warn { background: var(--amber-soft); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
-    .pill-fail { background: var(--rose-soft); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35); }
-
-    /* Step 1: Compact Stage Grid */
-    .stage-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.35rem;
-      margin-bottom: 0.55rem;
-    }
-
-    .stage-btn {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.38rem 0.5rem;
-      cursor: pointer;
-      text-align: left;
-      color: var(--text-muted);
-      transition: all 0.12s;
-    }
-
-    .stage-btn strong {
-      display: block;
-      font-size: 0.74rem;
-      color: var(--text);
-    }
-
-    .stage-btn span {
-      font-size: 0.67rem;
-      color: var(--text-dim);
-      display: block;
-    }
-
-    .stage-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
-
-    .stage-btn.active span { color: var(--accent); }
-
-    .gate-checks {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.74rem;
-      color: var(--text-muted);
-    }
-
-    .gate-check {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      cursor: pointer;
-    }
-
-    .gate-check input {
-      accent-color: var(--emerald);
-      cursor: pointer;
-    }
+    .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .badge-rose  { background: var(--rose-bg);  color: var(--rose);  border: 1px solid var(--rose-border); }
 
     /* Presets */
-    .preset-bar {
+    .presets {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 0.35rem;
-      margin-bottom: 0.65rem;
+      margin-bottom: 0.75rem;
     }
 
-    .preset-btn {
-      padding: 0.3rem 0.25rem;
-      border-radius: 5px;
+    .preset {
+      padding: 0.32rem 0.2rem;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      background: var(--bg-input);
-      color: var(--text-muted);
+      background: var(--bg);
+      color: var(--muted);
       font-size: 0.74rem;
       font-weight: 700;
       cursor: pointer;
-      text-align: center;
     }
 
-    .preset-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent);
+    .preset.active {
+      background: var(--blue-bg);
+      border-color: var(--blue);
+      color: var(--blue);
     }
 
-    /* Compact Sliders */
-    .input-row {
-      margin-bottom: 0.5rem;
+    /* Controls */
+    .field {
+      margin-bottom: 0.65rem;
     }
 
-    .input-row:last-child { margin-bottom: 0; }
+    .field:last-child { margin-bottom: 0; }
 
-    .input-top {
+    .field-top {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      margin-bottom: 0.15rem;
+      font-size: 0.78rem;
+      margin-bottom: 0.2rem;
     }
 
-    .input-label {
+    .field-label {
       font-weight: 600;
       color: var(--text);
     }
 
-    .input-label code {
+    .field-hint {
       font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--accent);
-      margin-right: 0.25rem;
+      font-size: 0.7rem;
+      color: var(--dim);
     }
 
-    .input-meta {
-      font-family: var(--mono);
-      font-size: 0.69rem;
-      color: var(--text-dim);
-    }
-
-    .control-line {
+    .field-row {
       display: grid;
-      grid-template-columns: 1fr 86px;
+      grid-template-columns: 1fr 84px;
       gap: 0.5rem;
       align-items: center;
     }
 
     input[type="range"] {
       width: 100%;
-      height: 4px;
-      accent-color: var(--accent);
+      height: 5px;
+      accent-color: var(--blue);
       cursor: pointer;
     }
 
-    .num-wrap {
+    .num-box {
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .num-prefix, .num-suffix {
+    .pre, .suf {
       position: absolute;
       font-family: var(--mono);
       font-size: 0.7rem;
-      color: var(--text-dim);
+      color: var(--dim);
       pointer-events: none;
     }
 
-    .num-prefix { left: 0.4rem; }
-    .num-suffix { right: 0.4rem; }
+    .pre { left: 0.4rem; }
+    .suf { right: 0.4rem; }
 
     input[type="number"] {
       width: 100%;
-      background: var(--bg-input);
+      background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
       font-family: var(--mono);
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      padding: 0.22rem 0.35rem;
+      padding: 0.24rem 0.4rem;
       border-radius: 5px;
       text-align: right;
     }
 
-    input[type="number"].has-prefix { padding-left: 1rem; }
-    input[type="number"].has-suffix { padding-right: 1.85rem; }
-    input[type="number"]:focus { outline: none; border-color: var(--accent); }
+    input[type="number"].has-pre { padding-left: 1rem; }
+    input[type="number"].has-suf { padding-right: 1.8rem; }
+    input[type="number"]:focus { outline: none; border-color: var(--blue); background: #fff; }
 
-    .divider-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-dim);
-      margin: 0.6rem 0 0.4rem;
-      padding-top: 0.45rem;
-      border-top: 1px solid var(--border-subtle);
+    details.advanced {
+      margin-top: 0.65rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.76rem;
     }
 
-    /* Right Column: Verdict + Cards */
-    .verdict-box {
+    details.advanced summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+      user-select: none;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Verdict Banner */
+    .verdict {
       border-radius: var(--radius);
-      padding: 0.75rem 0.9rem;
-      margin-bottom: 0.75rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.85rem;
       border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
     }
 
-    .verdict-box.buy {
-      border-color: rgba(245, 158, 11, 0.45);
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(19, 26, 39, 0.95));
-    }
-
-    .verdict-box.crossover {
-      border-color: rgba(56, 189, 248, 0.45);
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(19, 26, 39, 0.95));
-    }
-
-    .verdict-box.build {
-      border-color: rgba(16, 185, 129, 0.45);
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(19, 26, 39, 0.95));
-    }
+    .verdict.buy { background: var(--amber-bg); border-color: var(--amber-border); }
+    .verdict.crossover { background: var(--blue-bg); border-color: var(--blue-border); }
+    .verdict.build { background: var(--green-bg); border-color: var(--green-border); }
 
     .verdict-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
-    .verdict-headline {
+    .verdict-title {
       font-size: 1rem;
       font-weight: 800;
-      letter-spacing: -0.01em;
+      color: var(--text);
     }
 
-    .verdict-body {
-      font-size: 0.78rem;
-      color: var(--text-muted);
+    .verdict-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
     }
-
-    .verdict-body strong { color: var(--text); }
 
     /* 3 TCO Cards */
-    .tco-cards {
+    .tco-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.6rem;
-      margin-bottom: 0.65rem;
+      gap: 0.65rem;
+      margin-bottom: 0.85rem;
     }
 
-    @media (max-width: 640px) {
-      .tco-cards { grid-template-columns: 1fr; }
+    @media (max-width: 600px) {
+      .tco-grid { grid-template-columns: 1fr; }
     }
 
     .tco-card {
-      background: var(--bg-input);
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      padding: 0.75rem;
     }
 
     .tco-card.recommended {
-      border-color: var(--emerald);
-      box-shadow: inset 0 0 0 1px var(--emerald);
+      background: #fff;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px var(--blue);
     }
 
-    .tco-card-head {
+    .tco-head {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      font-size: 0.76rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-    }
-
-    .tco-card-head span:last-child {
-      font-size: 0.65rem;
-      font-family: var(--mono);
-      color: var(--text-dim);
-      text-transform: uppercase;
     }
 
     .tco-price {
       font-family: var(--mono);
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: var(--text);
       line-height: 1.15;
     }
 
-    .tco-subprice {
+    .tco-sub {
       font-family: var(--mono);
-      font-size: 0.69rem;
-      color: var(--text-dim);
-      margin-bottom: 0.45rem;
+      font-size: 0.7rem;
+      color: var(--dim);
+      margin-bottom: 0.5rem;
     }
 
-    .tco-breakdown {
-      border-top: 1px solid var(--border-subtle);
-      padding-top: 0.4rem;
-      font-size: 0.71rem;
+    .tco-lines {
+      border-top: 1px solid var(--border);
+      padding-top: 0.45rem;
+      font-size: 0.72rem;
       display: flex;
       flex-direction: column;
-      gap: 0.18rem;
+      gap: 0.2rem;
     }
 
     .tco-line {
       display: flex;
       justify-content: space-between;
-      color: var(--text-muted);
+      color: var(--muted);
     }
 
     .tco-line span:last-child {
       font-family: var(--mono);
-      color: var(--text);
       font-weight: 600;
+      color: var(--text);
     }
 
-    /* Compact Bar */
-    .stack-wrap {
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 0.5rem 0.7rem;
-      margin-bottom: 0.65rem;
+    /* Cost Bar */
+    .split-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 0.85rem;
     }
 
-    .stack-top {
+    .split-top {
       display: flex;
       justify-content: space-between;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.35rem;
     }
 
-    .stack-bar {
+    .split-bar {
       height: 10px;
       border-radius: 99px;
       overflow: hidden;
       display: flex;
-      background: #090d14;
-      margin-bottom: 0.35rem;
+      background: var(--border);
+      margin-bottom: 0.4rem;
     }
 
-    .stack-seg-tokens { background: var(--accent); }
-    .stack-seg-setup { background: var(--indigo); }
-    .stack-seg-maint { background: var(--rose); }
+    .seg-tokens { background: var(--blue); }
+    .seg-setup  { background: #6366f1; }
+    .seg-maint  { background: var(--rose); }
 
-    .stack-legend {
+    .split-legend {
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.5rem;
-      font-size: 0.69rem;
-      color: var(--text-muted);
+      font-size: 0.71rem;
+      color: var(--muted);
     }
 
-    .legend-dot {
+    .dot {
       display: inline-block;
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      margin-right: 0.25rem;
+      margin-right: 0.3rem;
     }
 
-    /* Bottom Split: Chart + Matrix Table side by side */
-    .bottom-split {
-      display: grid;
-      grid-template-columns: 1.05fr 1fr;
-      gap: 0.65rem;
-    }
-
-    @media (max-width: 1080px) {
-      .bottom-split { grid-template-columns: 1fr; }
-    }
-
-    .sub-box {
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 0.6rem 0.7rem;
-    }
-
-    .sub-box-title {
-      font-size: 0.74rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    svg.crossover-svg {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
+    /* Comparison Table */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.72rem;
+      font-size: 0.76rem;
     }
 
     th, td {
-      padding: 0.36rem 0.4rem;
+      padding: 0.45rem 0.5rem;
       text-align: left;
-      border-bottom: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border);
     }
 
     th {
-      font-size: 0.66rem;
+      font-size: 0.68rem;
       text-transform: uppercase;
-      color: var(--text-dim);
+      letter-spacing: 0.04em;
+      color: var(--dim);
+      background: var(--bg);
     }
 
     tr.active-row {
-      background: rgba(56, 189, 248, 0.1);
+      background: var(--blue-bg);
     }
 
     td.mono {
@@ -569,338 +469,306 @@
       font-weight: 600;
     }
 
-    .dividend-note {
-      margin-top: 0.55rem;
-      padding-top: 0.45rem;
-      border-top: 1px solid var(--border-subtle);
-      font-size: 0.72rem;
-      color: var(--text-muted);
+    .footnote {
+      margin-top: 0.65rem;
+      font-size: 0.74rem;
+      color: var(--muted);
+      background: var(--subtle);
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
     }
-
-    .dividend-note strong { color: var(--text); }
 
     .toast {
       position: fixed;
       bottom: 1rem;
       right: 1rem;
-      background: var(--emerald);
-      color: #04130d;
-      font-weight: 700;
+      background: var(--text);
+      color: #fff;
+      font-weight: 600;
       font-size: 0.78rem;
       padding: 0.5rem 0.85rem;
       border-radius: 6px;
       opacity: 0;
-      transform: translateY(8px);
       pointer-events: none;
-      transition: all 0.18s;
-      z-index: 100;
+      transition: opacity 0.18s;
     }
 
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <div class="brand">
+      <div>
         <h1>AI Code Review Build-vs-Buy TCO Calculator</h1>
-        <span class="tag-subtitle">12-Month Total Cost: Vendor Licenses ($400–$700/seat) vs. Internal CI Agent (~$1.70/MR + 1–2d/wk AI Ops)</span>
+        <p class="subtitle">12-month cost comparison: Commercial Vendor Seats ($400–$700/yr) vs. Internal CI Agent (~$1.70/MR + AI Ops Maintenance)</p>
       </div>
-      <div class="top-actions">
-        <button class="btn btn-primary" id="btnCopySummary" type="button">📋 Copy Memo</button>
-        <button class="btn" id="btnShareUrl" type="button">🔗 Share Link</button>
-        <button class="btn" id="btnReset" type="button">↺ Reset</button>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnCopy" type="button">Copy Summary</button>
+        <button class="btn" id="btnShare" type="button">Share Link</button>
+        <button class="btn" id="btnReset" type="button">Reset</button>
       </div>
     </header>
 
-    <div class="grid-main">
-      <!-- LEFT SIDEBAR: GATE + SLIDERS -->
+    <div class="layout">
+      <!-- LEFT: INPUTS -->
       <aside>
-        <!-- STEP 1: READINESS GATE -->
         <div class="card">
-          <div class="card-header">
-            <span class="card-title">1. AI Ops Readiness Gate</span>
-            <span id="gateStatusPill" class="pill pill-pass">PASS</span>
+          <div class="section-title">
+            <span>1. AI Ops Ownership Readiness</span>
+            <span id="gateBadge" class="badge badge-green">PASS</span>
           </div>
-
-          <div class="stage-grid" id="stageSelector">
-            <button type="button" class="stage-btn" data-stage="1">
-              <strong>Stage 1: Ad-Hoc</strong>
-              <span>No owner → 100% Buy</span>
+          <div class="gate-opts">
+            <button type="button" class="gate-btn" data-stage="1">
+              <span>Stage 1: Ad-hoc (No dedicated owner)</span>
+              <span class="badge badge-rose">Buy Only</span>
             </button>
-            <button type="button" class="stage-btn active" data-stage="2">
-              <strong>Stage 2: Part-Time</strong>
-              <span>1–2 d/wk owner</span>
+            <button type="button" class="gate-btn active" data-stage="2">
+              <span>Stage 2: Part-time owner (1–2 d/wk)</span>
+              <span class="badge badge-amber">Eligible</span>
             </button>
-            <button type="button" class="stage-btn" data-stage="3">
-              <strong>Stage 3: AI Ops Team</strong>
-              <span>2–5 person team</span>
+            <button type="button" class="gate-btn" data-stage="3">
+              <span>Stage 3+: Dedicated AI Ops team</span>
+              <span class="badge badge-green">Build Ready</span>
             </button>
-            <button type="button" class="stage-btn" data-stage="4">
-              <strong>Stage 4: Org Platform</strong>
-              <span>Shared SDLC agents</span>
-            </button>
-          </div>
-
-          <div class="gate-checks">
-            <label class="gate-check">
-              <input type="checkbox" id="gateQ1" checked />
-              <span>Dedicated 1–2 d/wk owner for next 6–12 mos</span>
-            </label>
-            <label class="gate-check">
-              <input type="checkbox" id="gateQ2" checked />
-              <span>Backup owner if primary changes roles</span>
-            </label>
           </div>
         </div>
 
-        <!-- STEP 2: PARAMETERS -->
         <div class="card">
-          <div class="card-header">
-            <span class="card-title">2. Team &amp; Cost Parameters</span>
-            <span id="totalMrsBadge" style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;">720 MRs/mo</span>
+          <div class="section-title">
+            <span>2. Team &amp; Cost Inputs</span>
+            <span id="totalMrsBadge" style="font-family:var(--mono);color:var(--blue);">720 MRs/mo</span>
           </div>
 
-          <div class="preset-bar">
-            <button type="button" class="preset-btn" data-devs="15">15 Devs</button>
-            <button type="button" class="preset-btn" data-devs="35">35 Devs</button>
-            <button type="button" class="preset-btn active" data-devs="60">60 Devs</button>
-            <button type="button" class="preset-btn" data-devs="100">100 Devs</button>
+          <div class="presets">
+            <button type="button" class="preset" data-devs="15">15 Devs</button>
+            <button type="button" class="preset" data-devs="35">35 Devs</button>
+            <button type="button" class="preset active" data-devs="60">60 Devs</button>
+            <button type="button" class="preset" data-devs="100">100 Devs</button>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="nDevs"><code>N_devs</code>Active Developers</label>
-              <span class="input-meta">Seats</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="nDevs">Active Developers</label>
+              <span class="field-hint">Seats</span>
             </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="nDevsRange" min="5" max="250" step="1" value="60" />
-              <div class="num-wrap">
-                <input type="number" id="nDevs" min="1" max="2000" value="60" class="has-suffix" />
-                <span class="num-suffix">dev</span>
+              <div class="num-box">
+                <input type="number" id="nDevs" min="1" max="2000" value="60" class="has-suf" />
+                <span class="suf">dev</span>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="mrsPerDev"><code>M_reviews</code>MRs / Dev / Month</label>
-              <span class="input-meta">Bench: 10–15</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="mrsPerDev">PRs / MRs per Dev / Month</label>
+              <span class="field-hint">Avg: 12/mo</span>
             </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="mrsPerDevRange" min="2" max="40" step="1" value="12" />
-              <div class="num-wrap">
-                <input type="number" id="mrsPerDev" min="1" max="200" value="12" class="has-suffix" />
-                <span class="num-suffix">/mo</span>
+              <div class="num-box">
+                <input type="number" id="mrsPerDev" min="1" max="200" value="12" class="has-suf" />
+                <span class="suf">/mo</span>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="cToken"><code>C_token</code>Compute / Review</label>
-              <span class="input-meta">Bench: $1.70</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="cToken">Token Compute / Review</label>
+              <span class="field-hint">Bench: $1.70</span>
             </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="cTokenRange" min="0.2" max="10" step="0.1" value="1.70" />
-              <div class="num-wrap">
-                <span class="num-prefix">$</span>
-                <input type="number" id="cToken" min="0.05" max="50" step="0.1" value="1.70" class="has-prefix" />
+              <div class="num-box">
+                <span class="pre">$</span>
+                <input type="number" id="cToken" min="0.05" max="50" step="0.1" value="1.70" class="has-pre" />
               </div>
             </div>
           </div>
 
-          <div class="divider-label">Internal Engineering &amp; Maintenance</div>
-
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="cEngDay"><code>C_eng_day</code>Senior Eng Daily Cost</label>
-              <span class="input-meta" id="annualSalaryBadge">$100k/yr</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="cEngDay">Senior Engineer Daily Cost</label>
+              <span class="field-hint" id="annualSalaryBadge">$100k/yr</span>
             </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="cEngDayRange" min="200" max="1200" step="20" value="400" />
-              <div class="num-wrap">
-                <span class="num-prefix">$</span>
-                <input type="number" id="cEngDay" min="50" max="3000" step="10" value="400" class="has-prefix has-suffix" />
-                <span class="num-suffix">/d</span>
+              <div class="num-box">
+                <span class="pre">$</span>
+                <input type="number" id="cEngDay" min="50" max="3000" step="10" value="400" class="has-pre has-suf" />
+                <span class="suf">/d</span>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="dMaint"><code>D_maint</code>Weekly Maint &amp; Evals</label>
-              <span class="input-meta" id="fteBadge" style="color:#fb7185;">30% FTE ($30k)</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="dMaint">Weekly Maintenance &amp; Evals</label>
+              <span class="field-hint" id="fteBadge" style="color:var(--rose);font-weight:600;">30% FTE ($30k)</span>
             </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="dMaintRange" min="0.25" max="5" step="0.25" value="1.5" />
-              <div class="num-wrap">
-                <input type="number" id="dMaint" min="0" max="10" step="0.25" value="1.5" class="has-suffix" />
-                <span class="num-suffix">d/w</span>
+              <div class="num-box">
+                <input type="number" id="dMaint" min="0" max="10" step="0.25" value="1.5" class="has-suf" />
+                <span class="suf">d/w</span>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="dSetup"><code>D_setup</code>v1 Build &amp; MR Mining</label>
-              <span class="input-meta">Bench: 10–15d</span>
+          <div class="field">
+            <div class="field-top">
+              <label class="field-label" for="pVendorEnt">Enterprise Vendor Quote</label>
+              <span class="field-hint">per dev/yr</span>
             </div>
-            <div class="control-line">
-              <input type="range" id="dSetupRange" min="2" max="40" step="1" value="12" />
-              <div class="num-wrap">
-                <input type="number" id="dSetup" min="0" max="120" step="1" value="12" class="has-suffix" />
-                <span class="num-suffix">d</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="divider-label">Vendor Pricing Quotes</div>
-
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="pVendorStd"><code>P_vendor_std</code>Standard License</label>
-              <span class="input-meta">per dev/yr</span>
-            </div>
-            <div class="control-line">
-              <input type="range" id="pVendorStdRange" min="150" max="800" step="10" value="400" />
-              <div class="num-wrap">
-                <span class="num-prefix">$</span>
-                <input type="number" id="pVendorStd" min="50" max="2000" step="10" value="400" class="has-prefix has-suffix" />
-                <span class="num-suffix">/yr</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="pVendorEnt"><code>P_vendor_ent</code>Enterprise Quote</label>
-              <span class="input-meta">per dev/yr</span>
-            </div>
-            <div class="control-line">
+            <div class="field-row">
               <input type="range" id="pVendorEntRange" min="300" max="1200" step="10" value="700" />
-              <div class="num-wrap">
-                <span class="num-prefix">$</span>
-                <input type="number" id="pVendorEnt" min="100" max="3000" step="10" value="700" class="has-prefix has-suffix" />
-                <span class="num-suffix">/yr</span>
+              <div class="num-box">
+                <span class="pre">$</span>
+                <input type="number" id="pVendorEnt" min="100" max="3000" step="10" value="700" class="has-pre has-suf" />
+                <span class="suf">/yr</span>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-            <div class="input-top">
-              <label class="input-label" for="dVendorAdmin"><code>D_admin</code>Vendor Setup + Admin</label>
-              <span class="input-meta">~10 days/yr</span>
-            </div>
-            <div class="control-line">
-              <input type="range" id="dVendorAdminRange" min="0" max="30" step="1" value="10" />
-              <div class="num-wrap">
-                <input type="number" id="dVendorAdmin" min="0" max="100" step="1" value="10" class="has-suffix" />
-                <span class="num-suffix">d/y</span>
+          <details class="advanced">
+            <summary>More assumptions (Standard tier, Setup &amp; Admin)</summary>
+
+            <div class="field">
+              <div class="field-top">
+                <label class="field-label" for="pVendorStd">Standard Vendor License</label>
+                <span class="field-hint">per dev/yr</span>
+              </div>
+              <div class="field-row">
+                <input type="range" id="pVendorStdRange" min="150" max="800" step="10" value="400" />
+                <div class="num-box">
+                  <span class="pre">$</span>
+                  <input type="number" id="pVendorStd" min="50" max="2000" step="10" value="400" class="has-pre has-suf" />
+                  <span class="suf">/yr</span>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div class="field">
+              <div class="field-top">
+                <label class="field-label" for="dSetup">Initial Build &amp; MR Mining</label>
+                <span class="field-hint">Year 1 setup</span>
+              </div>
+              <div class="field-row">
+                <input type="range" id="dSetupRange" min="2" max="40" step="1" value="12" />
+                <div class="num-box">
+                  <input type="number" id="dSetup" min="0" max="120" step="1" value="12" class="has-suf" />
+                  <span class="suf">d</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-top">
+                <label class="field-label" for="dVendorAdmin">Vendor Setup + Annual Admin</label>
+                <span class="field-hint">~10 days/yr</span>
+              </div>
+              <div class="field-row">
+                <input type="range" id="dVendorAdminRange" min="0" max="30" step="1" value="10" />
+                <div class="num-box">
+                  <input type="number" id="dVendorAdmin" min="0" max="100" step="1" value="10" class="has-suf" />
+                  <span class="suf">d/y</span>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </aside>
 
-      <!-- RIGHT PANEL: VERDICT, CARDS, CHART & TABLE -->
+      <!-- RIGHT: RESULTS -->
       <section>
-        <div class="verdict-box crossover" id="verdictBox">
+        <div class="verdict crossover" id="verdictBox">
           <div class="verdict-top">
-            <div class="verdict-headline" id="verdictHeadline">Crossover Zone (~60 Devs): Build &amp; Enterprise Vendor Break Even</div>
-            <span class="pill pill-warn" id="verdictBadge">CROSSOVER</span>
+            <div class="verdict-title" id="verdictHeadline">Crossover Zone (~60 Devs): Build &amp; Enterprise Vendor Break Even</div>
+            <span class="badge badge-amber" id="verdictBadge">CROSSOVER</span>
           </div>
-          <p class="verdict-body" id="verdictBody"></p>
+          <p class="verdict-desc" id="verdictBody"></p>
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <span class="card-title">3. 12-Month TCO Comparison</span>
-            <span id="breakevenBadge" style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted);">Break-even vs Ent: ~58–69 devs</span>
+          <div class="section-title">
+            <span>12-Month Total Cost of Ownership (TCO)</span>
+            <span id="breakevenBadge" style="font-family:var(--mono);">Break-even vs Ent: ~53–62 devs</span>
           </div>
 
-          <div class="tco-cards">
+          <div class="tco-grid">
             <div class="tco-card" id="cardVendorStd">
-              <div class="tco-card-head"><span>Vendor Standard</span><span>Option A • Buy</span></div>
+              <div class="tco-head"><span>Vendor Standard</span><span>Buy</span></div>
               <div class="tco-price" id="outVendorStdTotal">$28,000</div>
-              <div class="tco-subprice" id="outVendorStdPerDev">$467 / dev / yr</div>
-              <div class="tco-breakdown">
+              <div class="tco-sub" id="outVendorStdPerDev">$467 / dev / yr</div>
+              <div class="tco-lines">
                 <div class="tco-line"><span>Seat Licenses</span><span id="outVendorStdSeats">$24,000</span></div>
                 <div class="tco-line"><span>Setup &amp; Admin</span><span id="outVendorStdAdmin">$4,000</span></div>
-                <div class="tco-line"><span>Rule Maintenance</span><span style="color:var(--emerald);">Vendor</span></div>
+                <div class="tco-line"><span>Rule Maintenance</span><span style="color:var(--green);">Included</span></div>
               </div>
             </div>
 
             <div class="tco-card" id="cardVendorEnt">
-              <div class="tco-card-head"><span>Vendor Enterprise</span><span>Option B • Buy</span></div>
+              <div class="tco-head"><span>Vendor Enterprise</span><span>Buy</span></div>
               <div class="tco-price" id="outVendorEntTotal">$46,000</div>
-              <div class="tco-subprice" id="outVendorEntPerDev">$767 / dev / yr</div>
-              <div class="tco-breakdown">
+              <div class="tco-sub" id="outVendorEntPerDev">$767 / dev / yr</div>
+              <div class="tco-lines">
                 <div class="tco-line"><span>Seat Licenses</span><span id="outVendorEntSeats">$42,000</span></div>
                 <div class="tco-line"><span>Setup &amp; Admin</span><span id="outVendorEntAdmin">$4,000</span></div>
-                <div class="tco-line"><span>Rule Maintenance</span><span style="color:var(--emerald);">Vendor</span></div>
+                <div class="tco-line"><span>Rule Maintenance</span><span style="color:var(--green);">Included</span></div>
               </div>
             </div>
 
             <div class="tco-card" id="cardInternalBuild">
-              <div class="tco-card-head"><span>Internal CI Agent</span><span>Option C • Build</span></div>
+              <div class="tco-head"><span>Internal CI Agent</span><span>Build</span></div>
               <div class="tco-price" id="outBuildY1Total">$49,488</div>
-              <div class="tco-subprice" id="outBuildY2Total">Year 2+: $44,688 / yr</div>
-              <div class="tco-breakdown">
+              <div class="tco-sub" id="outBuildY2Total">Year 2+: $44,688 / yr</div>
+              <div class="tco-lines">
                 <div class="tco-line"><span>LLM &amp; CI Tokens</span><span id="outBuildTokens">$14,688</span></div>
                 <div class="tco-line"><span>v1 Setup &amp; Mining</span><span id="outBuildSetup">$4,800</span></div>
-                <div class="tco-line"><span>Rule Maint (50 wks)</span><span id="outBuildMaint" style="color:#fb7185;">$30,000</span></div>
+                <div class="tco-line"><span>AI Ops Maint (50w)</span><span id="outBuildMaint" style="color:var(--rose);">$30,000</span></div>
               </div>
             </div>
           </div>
 
-          <div class="stack-wrap">
-            <div class="stack-top">
-              <span>Internal Build Cost Structure (Why $1.70/MR Tokens Are Only a Fraction)</span>
-              <span id="maintShareLabel" style="color:#fb7185;font-family:var(--mono);">70.3% is Engineering Time</span>
+          <div class="split-box">
+            <div class="split-top">
+              <span>Where Internal Build Budget Actually Goes</span>
+              <span id="maintShareLabel" style="color:var(--rose);font-family:var(--mono);">70% is Engineering Time</span>
             </div>
-            <div class="stack-bar">
-              <div class="stack-seg-tokens" id="barTokens" style="width:29.7%"></div>
-              <div class="stack-seg-setup" id="barSetup" style="width:9.7%"></div>
-              <div class="stack-seg-maint" id="barMaint" style="width:60.6%"></div>
+            <div class="split-bar">
+              <div class="seg-tokens" id="barTokens" style="width:30%"></div>
+              <div class="seg-setup" id="barSetup" style="width:10%"></div>
+              <div class="seg-maint" id="barMaint" style="width:60%"></div>
             </div>
-            <div class="stack-legend">
-              <span><i class="legend-dot" style="background:var(--accent)"></i><span id="legendTokens">Tokens (29.7%)</span></span>
-              <span><i class="legend-dot" style="background:var(--indigo)"></i><span id="legendSetup">v1 Setup (9.7%)</span></span>
-              <span><i class="legend-dot" style="background:var(--rose)"></i><span id="legendMaint">Ongoing AI Ops Maintenance (60.6%)</span></span>
+            <div class="split-legend">
+              <span><i class="dot" style="background:var(--blue)"></i><span id="legendTokens">Tokens (30%)</span></span>
+              <span><i class="dot" style="background:#6366f1"></i><span id="legendSetup">v1 Setup (10%)</span></span>
+              <span><i class="dot" style="background:var(--rose)"></i><span id="legendMaint">Ongoing Rule Maintenance (60%)</span></span>
             </div>
           </div>
 
-          <div class="bottom-split">
-            <div class="sub-box">
-              <div class="sub-box-title">
-                <span>TCO Crossover Curve (10–140 Devs)</span>
-                <span style="font-size:0.66rem;color:var(--text-dim);">Yr 1 vs Yr 2+ vs Vendor</span>
-              </div>
-              <svg class="crossover-svg" id="crossoverChart" viewBox="0 0 460 175"></svg>
-            </div>
+          <div class="section-title" style="margin-bottom:0.4rem;">
+            <span>Comparison Across Team Sizes</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Team Size</th>
+                <th>Vendor Standard</th>
+                <th>Vendor Enterprise</th>
+                <th>Internal Build (Yr 1 / Yr 2+)</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
 
-            <div class="sub-box">
-              <div class="sub-box-title">
-                <span>Worked Comparison Across Team Sizes</span>
-              </div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Devs</th>
-                    <th>Vendor Std</th>
-                    <th>Vendor Ent</th>
-                    <th>Build Yr1 / Yr2+</th>
-                    <th>Verdict</th>
-                  </tr>
-                </thead>
-                <tbody id="matrixTableBody"></tbody>
-              </table>
-              <div class="dividend-note">
-                💡 <strong>AI Ops Compounding Dividend:</strong> Investing <strong id="dividendMaintText">$30,000/yr</strong> internally builds shared context (<code>CLAUDE.md</code>), runners, MCPs &amp; evals that power Slack Q&amp;A, ticket-to-MR, and release agents.
-              </div>
-            </div>
+          <div class="footnote">
+            <strong>Strategic Note (AI Ops Compounding Dividend):</strong> At 50–100+ devs, the <strong id="dividendMaintText">$30,000/yr</strong> spent on internal maintenance builds reusable in-house AI Ops infrastructure (<code>CLAUDE.md</code> context, runners, MCPs, nightly reflection) that powers Slack Q&amp;A, ticket-to-MR, and release agents.
           </div>
         </div>
       </section>
@@ -911,17 +779,16 @@
 
   <script>
     const DEFAULTS = {
-      stage: 2, gateQ1: true, gateQ2: true,
-      nDevs: 60, mrsPerDev: 12, cToken: 1.70,
+      stage: 2, nDevs: 60, mrsPerDev: 12, cToken: 1.70,
       cEngDay: 400, dMaint: 1.5, dSetup: 12,
       pVendorStd: 400, pVendorEnt: 700, dVendorAdmin: 10
     };
 
     const $ = id => document.getElementById(id);
     const els = {
-      stageBtns: document.querySelectorAll('.stage-btn'),
-      gateQ1: $('gateQ1'), gateQ2: $('gateQ2'), gateStatusPill: $('gateStatusPill'),
-      presetBtns: document.querySelectorAll('.preset-btn'),
+      gateBtns: document.querySelectorAll('.gate-btn'),
+      gateBadge: $('gateBadge'),
+      presets: document.querySelectorAll('.preset'),
       nDevs: $('nDevs'), nDevsRange: $('nDevsRange'),
       mrsPerDev: $('mrsPerDev'), mrsPerDevRange: $('mrsPerDevRange'),
       cToken: $('cToken'), cTokenRange: $('cTokenRange'),
@@ -944,8 +811,8 @@
       outBuildTokens: $('outBuildTokens'), outBuildSetup: $('outBuildSetup'), outBuildMaint: $('outBuildMaint'),
       maintShareLabel: $('maintShareLabel'), barTokens: $('barTokens'), barSetup: $('barSetup'), barMaint: $('barMaint'),
       legendTokens: $('legendTokens'), legendSetup: $('legendSetup'), legendMaint: $('legendMaint'),
-      dividendMaintText: $('dividendMaintText'), crossoverChart: $('crossoverChart'), matrixTableBody: $('matrixTableBody'),
-      btnCopySummary: $('btnCopySummary'), btnShareUrl: $('btnShareUrl'), btnReset: $('btnReset'), toast: $('toast')
+      dividendMaintText: $('dividendMaintText'), matrixBody: $('matrixBody'),
+      btnCopy: $('btnCopy'), btnShare: $('btnShare'), btnReset: $('btnReset'), toast: $('toast')
     };
 
     let currentStage = DEFAULTS.stage;
@@ -955,14 +822,14 @@
     function showToast(msg) {
       els.toast.textContent = msg;
       els.toast.classList.add('show');
-      setTimeout(() => els.toast.classList.remove('show'), 2200);
+      setTimeout(() => els.toast.classList.remove('show'), 2000);
     }
 
     function calcForDevs(nDevs, s) {
       const mReviews = nDevs * s.mrsPerDev;
       const annualTokens = 12 * mReviews * s.cToken;
       const setupCost = s.dSetup * s.cEngDay;
-      const maintCost = 50 * s.dMaint * s.cEngDay; // 250 working days = 50 working wks
+      const maintCost = 50 * s.dMaint * s.cEngDay;
       const buildY1 = annualTokens + setupCost + maintCost;
       const buildY2 = annualTokens + maintCost;
       const vendorAdminCost = s.dVendorAdmin * s.cEngDay;
@@ -976,8 +843,6 @@
     function getState() {
       return {
         stage: currentStage,
-        gateQ1: els.gateQ1.checked,
-        gateQ2: els.gateQ2.checked,
         nDevs: Math.max(1, parseFloat(els.nDevs.value) || DEFAULTS.nDevs),
         mrsPerDev: Math.max(1, parseFloat(els.mrsPerDev.value) || DEFAULTS.mrsPerDev),
         cToken: Math.max(0, parseFloat(els.cToken.value) || 0),
@@ -990,47 +855,6 @@
       };
     }
 
-    function renderChart(s, cur) {
-      const maxDevs = Math.max(120, Math.ceil((s.nDevs + 20) / 20) * 20);
-      const pts = [];
-      for (let d = 10; d <= maxDevs; d += 10) pts.push(calcForDevs(d, s));
-      const maxCost = Math.max(...pts.map(p => Math.max(p.buyEntTotal, p.buildY1))) * 1.08;
-      const W = 460, H = 175, padL = 42, padR = 14, padT = 22, padB = 24;
-      const plotW = W - padL - padR, plotH = H - padT - padB;
-      const xPos = d => padL + ((d - 10) / (maxDevs - 10)) * plotW;
-      const yPos = c => padT + plotH - (c / maxCost) * plotH;
-      const path = k => pts.map((p, i) => `${i ? 'L' : 'M'}${xPos(p.nDevs).toFixed(1)},${yPos(p[k]).toFixed(1)}`).join(' ');
-
-      let grid = '';
-      for (let i = 0; i <= 3; i++) {
-        const val = (maxCost / 3) * i, y = yPos(val).toFixed(1);
-        grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#1e293b" stroke-dasharray="2,2"/>
-                 <text x="${padL - 5}" y="${Number(y) + 3}" text-anchor="end" fill="#64748b" font-size="9" font-family="monospace">$${Math.round(val / 1000)}k</text>`;
-      }
-      let xl = '';
-      for (let d = 20; d <= maxDevs; d += 20) {
-        xl += `<text x="${xPos(d).toFixed(1)}" y="${H - 6}" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">${d}</text>`;
-      }
-      const cx = xPos(Math.min(maxDevs, Math.max(10, s.nDevs))).toFixed(1);
-
-      els.crossoverChart.innerHTML = `
-        ${grid}${xl}
-        <path d="${path('buyStdTotal')}" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="4,3"/>
-        <path d="${path('buyEntTotal')}" fill="none" stroke="#f59e0b" stroke-width="2"/>
-        <path d="${path('buildY1')}" fill="none" stroke="#38bdf8" stroke-width="2.2"/>
-        <path d="${path('buildY2')}" fill="none" stroke="#10b981" stroke-width="1.6" stroke-dasharray="2,2"/>
-        <line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT + plotH}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="2,2"/>
-        <circle cx="${cx}" cy="${yPos(cur.buyEntTotal).toFixed(1)}" r="3.5" fill="#f59e0b"/>
-        <circle cx="${cx}" cy="${yPos(cur.buildY1).toFixed(1)}" r="4" fill="#38bdf8"/>
-        <g transform="translate(${padL}, 10)" font-size="9" font-family="sans-serif">
-          <line x1="0" y1="0" x2="12" y2="0" stroke="#38bdf8" stroke-width="2.2"/><text x="15" y="3" fill="#e2e8f0">Build Y1</text>
-          <line x1="65" y1="0" x2="77" y2="0" stroke="#10b981" stroke-width="1.6" stroke-dasharray="2,2"/><text x="80" y="3" fill="#10b981">Build Y2+</text>
-          <line x1="138" y1="0" x2="150" y2="0" stroke="#f59e0b" stroke-width="2"/><text x="153" y="3" fill="#f59e0b">Ent ($${s.pVendorEnt})</text>
-          <line x1="222" y1="0" x2="234" y2="0" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="4,3"/><text x="237" y="3" fill="#94a3b8">Std ($${s.pVendorStd})</text>
-        </g>
-      `;
-    }
-
     function update() {
       const s = getState();
       const c = calcForDevs(s.nDevs, s);
@@ -1041,11 +865,11 @@
       els.fteBadge.textContent = `${ftePct}% FTE (${fmtK(c.maintCost)})`;
       els.dividendMaintText.textContent = `${fmt(c.maintCost)}/yr (${s.dMaint}d/wk)`;
 
-      els.presetBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.devs, 10) === s.nDevs));
+      els.presets.forEach(b => b.classList.toggle('active', parseInt(b.dataset.devs, 10) === s.nDevs));
 
-      const gatePassed = s.stage >= 2 && s.gateQ1 && s.gateQ2;
-      els.gateStatusPill.textContent = gatePassed ? (s.stage >= 3 ? 'STRONG BUILD' : 'PASS') : 'FAIL → BUY';
-      els.gateStatusPill.className = 'pill ' + (gatePassed ? 'pill-pass' : 'pill-fail');
+      const gatePassed = s.stage >= 2;
+      els.gateBadge.textContent = gatePassed ? 'PASS' : 'FAIL → BUY';
+      els.gateBadge.className = 'badge ' + (gatePassed ? 'badge-green' : 'badge-rose');
 
       const marginEnt = s.pVendorEnt - (12 * s.mrsPerDev * s.cToken);
       if (marginEnt > 0) {
@@ -1053,7 +877,7 @@
         const beY2 = Math.max(1, Math.ceil((c.maintCost - c.vendorAdminCost) / marginEnt));
         els.breakevenBadge.textContent = `Break-even vs Ent: ~${beY2}–${beY1} devs`;
       } else {
-        els.breakevenBadge.textContent = `Tokens > Seat Price`;
+        els.breakevenBadge.textContent = `Per-dev tokens exceed seat price`;
       }
 
       els.outVendorStdTotal.textContent = fmt(c.buyStdTotal);
@@ -1080,56 +904,54 @@
       els.maintShareLabel.textContent = `${(pS + pM).toFixed(0)}% is Eng Time (${fmt(c.setupCost + c.maintCost)})`;
       els.legendTokens.textContent = `Tokens (${pT.toFixed(0)}%)`;
       els.legendSetup.textContent = `Setup (${pS.toFixed(0)}%)`;
-      els.legendMaint.textContent = `Maint (${pM.toFixed(0)}%)`;
+      els.legendMaint.textContent = `AI Ops Maintenance (${pM.toFixed(0)}%)`;
 
       els.cardVendorStd.classList.remove('recommended');
       els.cardVendorEnt.classList.remove('recommended');
       els.cardInternalBuild.classList.remove('recommended');
 
       if (!gatePassed) {
-        els.verdictBox.className = 'verdict-box buy';
-        els.verdictBadge.className = 'pill pill-fail';
-        els.verdictBadge.textContent = 'GATE: BUY';
-        els.verdictHeadline.textContent = `Default to Buy: No Dedicated AI Ops Maintenance Backup`;
-        els.verdictBody.innerHTML = `Without <strong>1–2 days/week</strong> of dedicated rule maintenance &amp; a secondary backup owner, internal review bots degrade into noise within 60 days. Outsource rule curation to a vendor (<strong>${fmt(c.buyStdTotal)}–${fmt(c.buyEntTotal)}/yr</strong>).`;
+        els.verdictBox.className = 'verdict buy';
+        els.verdictBadge.className = 'badge badge-rose';
+        els.verdictBadge.textContent = 'BUY ONLY';
+        els.verdictHeadline.textContent = `Default to Buying: No Dedicated AI Ops Owner`;
+        els.verdictBody.innerHTML = `Without <strong>1–2 days/week</strong> of dedicated engineering ownership for rule curation and false-positive suppression, an internal review bot degrades into ignored noise within 60 days. Outsource maintenance to a vendor (<strong>${fmt(c.buyStdTotal)}–${fmt(c.buyEntTotal)}/yr</strong>).`;
         els.cardVendorStd.classList.add('recommended');
       } else if (c.buildY1 < c.buyEntTotal * 0.92) {
-        els.verdictBox.className = 'verdict-box build';
-        els.verdictBadge.className = 'pill pill-pass';
+        els.verdictBox.className = 'verdict build';
+        els.verdictBadge.className = 'badge badge-green';
         els.verdictBadge.textContent = 'STRONG BUILD';
         els.verdictHeadline.textContent = `Build Internally: Save ${fmt(c.buyEntTotal - c.buildY1)} Yr 1 (${fmt(c.buyEntTotal - c.buildY2)}/yr Yr 2+) vs. Enterprise Quote`;
-        els.verdictBody.innerHTML = `At <strong>${s.nDevs} devs</strong> (${c.mReviews} MRs/mo), internal build (<strong>${fmt(c.buildY1)} Yr 1 / ${fmt(c.buildY2)} Yr 2+</strong>) beats a <strong>$${s.pVendorEnt}/seat</strong> vendor quote (<strong>${fmt(c.buyEntTotal)}/yr</strong>) while compounding in-house AI Ops capability across your SDLC.`;
+        els.verdictBody.innerHTML = `At <strong>${s.nDevs} developers</strong> (${c.mReviews} MRs/mo), internal build (<strong>${fmt(c.buildY1)} Yr 1 / ${fmt(c.buildY2)} Yr 2+</strong>) beats a <strong>$${s.pVendorEnt}/seat</strong> quote (<strong>${fmt(c.buyEntTotal)}/yr</strong>) while building reusable in-house AI Ops capability.`;
         els.cardInternalBuild.classList.add('recommended');
       } else if (c.buildY2 <= c.buyEntTotal * 1.08) {
-        els.verdictBox.className = 'verdict-box crossover';
-        els.verdictBadge.className = 'pill pill-warn';
+        els.verdictBox.className = 'verdict crossover';
+        els.verdictBadge.className = 'badge badge-amber';
         els.verdictBadge.textContent = 'CROSSOVER ZONE';
         els.verdictHeadline.textContent = `Crossover Zone (${s.nDevs} Devs): Build & Enterprise Vendor Break Even`;
-        els.verdictBody.innerHTML = `Internal Build (<strong>${fmt(c.buildY1)} Yr 1 / ${fmt(c.buildY2)} Yr 2+</strong>) matches Enterprise Vendor pricing (<strong>${fmt(c.buyEntTotal)}/yr</strong>). <strong>Build</strong> to cultivate reusable AI Ops infrastructure; <strong>Buy</strong> if you only want code review.`;
+        els.verdictBody.innerHTML = `Internal Build (<strong>${fmt(c.buildY1)} Yr 1 / ${fmt(c.buildY2)} Yr 2+</strong>) matches Enterprise Vendor pricing (<strong>${fmt(c.buyEntTotal)}/yr</strong>). <strong>Build</strong> to cultivate shared AI Ops infrastructure; <strong>Buy</strong> if you only want code review.`;
         els.cardInternalBuild.classList.add('recommended');
       } else {
-        els.verdictBox.className = 'verdict-box buy';
-        els.verdictBadge.className = 'pill pill-warn';
-        els.verdictBadge.textContent = 'BUY VENDOR';
-        els.verdictHeadline.textContent = `Buy Vendor Tool: Internal Build Costs ${(c.buildY1 / c.buyStdTotal).toFixed(1)}x More Than Standard Licensing`;
-        els.verdictBody.innerHTML = `At <strong>${s.nDevs} devs</strong>, dedicating <strong>${s.dMaint}d/wk</strong> of Senior Eng maintenance (<strong>${fmt(c.maintCost)}/yr</strong>) pushes internal build to <strong>${fmt(c.buildY1)}/yr</strong> vs. <strong>${fmt(c.buyStdTotal)}–${fmt(c.buyEntTotal)}/yr</strong> for a vendor.`;
+        els.verdictBox.className = 'verdict buy';
+        els.verdictBadge.className = 'badge badge-amber';
+        els.verdictBadge.textContent = 'RECOMMEND BUY';
+        els.verdictHeadline.textContent = `Buy Vendor Tool: Internal Build Costs ${(c.buildY1 / c.buyStdTotal).toFixed(1)}x Standard Licensing`;
+        els.verdictBody.innerHTML = `For <strong>${s.nDevs} developers</strong>, dedicating <strong>${s.dMaint}d/wk</strong> of Senior Eng maintenance (<strong>${fmt(c.maintCost)}/yr</strong>) brings internal build to <strong>${fmt(c.buildY1)}/yr</strong> vs. <strong>${fmt(c.buyStdTotal)}–${fmt(c.buyEntTotal)}/yr</strong> for a vendor.`;
         els.cardVendorStd.classList.add('recommended');
       }
 
-      renderChart(s, c);
-
       const scenarios = [15, 35, 60, 100];
       if (!scenarios.includes(s.nDevs)) { scenarios.push(s.nDevs); scenarios.sort((a, b) => a - b); }
-      els.matrixTableBody.innerHTML = scenarios.map(d => {
+      els.matrixBody.innerHTML = scenarios.map(d => {
         const r = calcForDevs(d, s);
-        let v = `<span class="pill pill-fail">BUY</span>`;
-        if (r.buildY1 < r.buyEntTotal * 0.92) v = `<span class="pill pill-pass">BUILD</span>`;
-        else if (r.buildY2 <= r.buyEntTotal * 1.08) v = `<span class="pill pill-warn">EVEN</span>`;
+        let v = `<span class="badge badge-rose">Buy</span>`;
+        if (r.buildY1 < r.buyEntTotal * 0.92) v = `<span class="badge badge-green">Build</span>`;
+        else if (r.buildY2 <= r.buyEntTotal * 1.08) v = `<span class="badge badge-amber">Break-Even</span>`;
         return `<tr class="${d === s.nDevs ? 'active-row' : ''}">
-          <td><strong>${d}</strong></td>
-          <td class="mono">${fmtK(r.buyStdTotal)}</td>
-          <td class="mono">${fmtK(r.buyEntTotal)}</td>
-          <td class="mono">${fmtK(r.buildY1)} <span style="color:var(--text-dim);font-weight:400;">/ ${fmtK(r.buildY2)}</span></td>
+          <td><strong>${d} Devs</strong> <span style="color:var(--dim);font-size:0.7rem;">(${r.mReviews} MRs/mo)</span></td>
+          <td class="mono">${fmt(r.buyStdTotal)}/yr</td>
+          <td class="mono">${fmt(r.buyEntTotal)}/yr</td>
+          <td class="mono">${fmt(r.buildY1)} <span style="color:var(--dim);font-weight:400;">(Yr2: ${fmt(r.buildY2)})</span></td>
           <td>${v}</td>
         </tr>`;
       }).join('');
@@ -1149,20 +971,16 @@
     bindPair(els.pVendorEnt, els.pVendorEntRange);
     bindPair(els.dVendorAdmin, els.dVendorAdminRange);
 
-    els.stageBtns.forEach(btn => {
+    els.gateBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        els.stageBtns.forEach(b => b.classList.remove('active'));
+        els.gateBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentStage = parseInt(btn.dataset.stage, 10);
-        els.gateQ1.checked = currentStage >= 2;
         update();
       });
     });
 
-    els.gateQ1.addEventListener('change', update);
-    els.gateQ2.addEventListener('change', update);
-
-    els.presetBtns.forEach(b => {
+    els.presets.forEach(b => {
       b.addEventListener('click', () => {
         els.nDevs.value = b.dataset.devs;
         els.nDevsRange.value = b.dataset.devs;
@@ -1170,35 +988,32 @@
       });
     });
 
-    els.btnCopySummary.addEventListener('click', () => {
+    els.btnCopy.addEventListener('click', () => {
       const s = getState(), c = calcForDevs(s.nDevs, s);
       const text = `## AI Code Review Build-vs-Buy 12-Month TCO (${s.nDevs} Devs, ${c.mReviews} MRs/mo)
-- **Readiness Gate:** Stage ${s.stage} (${s.stage >= 2 && s.gateQ1 && s.gateQ2 ? 'PASS' : 'FAIL → Buy'})
+- **Readiness Gate:** Stage ${s.stage} (${s.stage >= 2 ? 'PASS' : 'FAIL → Buy'})
 - **Vendor Standard ($${s.pVendorStd}/dev/yr):** ${fmt(c.buyStdTotal)}/yr
 - **Vendor Enterprise ($${s.pVendorEnt}/dev/yr):** ${fmt(c.buyEntTotal)}/yr
 - **Internal CI Build:** ${fmt(c.buildY1)} Yr 1 / ${fmt(c.buildY2)} Yr 2+ (${fmt(c.annualTokens)} tokens + ${fmt(c.setupCost)} setup + ${fmt(c.maintCost)}/yr AI Ops maint)
 - **Verdict:** ${els.verdictHeadline.textContent}`;
-      navigator.clipboard.writeText(text).then(() => showToast('📋 Copied summary!'));
+      navigator.clipboard.writeText(text).then(() => showToast('Summary copied to clipboard'));
     });
 
-    els.btnShareUrl.addEventListener('click', () => {
+    els.btnShare.addEventListener('click', () => {
       const s = getState();
       const q = new URLSearchParams({
-        stage: s.stage, q1: s.gateQ1 ? 1 : 0, q2: s.gateQ2 ? 1 : 0,
-        devs: s.nDevs, mrs: s.mrsPerDev, token: s.cToken,
+        stage: s.stage, devs: s.nDevs, mrs: s.mrsPerDev, token: s.cToken,
         eng: s.cEngDay, maint: s.dMaint, setup: s.dSetup,
         vstd: s.pVendorStd, vent: s.pVendorEnt, vadm: s.dVendorAdmin
       });
       const url = `${window.location.origin}${window.location.pathname}?${q}`;
       window.history.replaceState({}, '', `?${q}`);
-      navigator.clipboard.writeText(url).then(() => showToast('🔗 Shareable link copied!'));
+      navigator.clipboard.writeText(url).then(() => showToast('Shareable link copied'));
     });
 
     els.btnReset.addEventListener('click', () => {
       currentStage = DEFAULTS.stage;
-      els.stageBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.stage, 10) === DEFAULTS.stage));
-      els.gateQ1.checked = DEFAULTS.gateQ1;
-      els.gateQ2.checked = DEFAULTS.gateQ2;
+      els.gateBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.stage, 10) === DEFAULTS.stage));
       const set = (n, r, v) => { n.value = v; r.value = v; };
       set(els.nDevs, els.nDevsRange, DEFAULTS.nDevs);
       set(els.mrsPerDev, els.mrsPerDevRange, DEFAULTS.mrsPerDev);
@@ -1211,7 +1026,7 @@
       set(els.dVendorAdmin, els.dVendorAdminRange, DEFAULTS.dVendorAdmin);
       window.history.replaceState({}, '', window.location.pathname);
       update();
-      showToast('↺ Reset to defaults');
+      showToast('Reset to defaults');
     });
 
     (function init() {
@@ -1229,10 +1044,8 @@
         set(els.dVendorAdmin, els.dVendorAdminRange, 'vadm', DEFAULTS.dVendorAdmin);
         if (p.has('stage')) {
           currentStage = parseInt(p.get('stage'), 10) || 2;
-          els.stageBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.stage, 10) === currentStage));
+          els.gateBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.stage, 10) === currentStage));
         }
-        if (p.has('q1')) els.gateQ1.checked = p.get('q1') === '1';
-        if (p.has('q2')) els.gateQ2.checked = p.get('q2') === '1';
       }
       update();
     })();
