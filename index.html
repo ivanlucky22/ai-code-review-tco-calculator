@@ -241,10 +241,10 @@
 
   <main class="calculator">
     <h1>AI Code Review: Build vs. Buy Calculator</h1>
-    <p class="sub">12-month Total Cost of Ownership (TCO) including hidden engineering maintenance.</p>
+    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance on both sides.</p>
 
     <div class="gate">
-      <span>Can you dedicate 1–2 days/week of a Senior Engineer to maintain rules &amp; evals?</span>
+      <span>Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?</span>
       <div class="toggle">
         <button type="button" id="gateYes" class="active">Yes</button>
         <button type="button" id="gateNo">No</button>
@@ -254,22 +254,22 @@
     <div class="inputs">
       <div class="field">
         <label>Active Developers <span id="vDevs">60</span></label>
-        <input type="range" id="devs" min="5" max="200" step="5" value="60" />
+        <input type="range" id="devs" min="5" max="500" step="5" value="60" />
+      </div>
+
+      <div class="field">
+        <label>Engineering Teams <span id="vTeams">8 teams</span></label>
+        <input type="range" id="teams" min="1" max="65" step="1" value="8" />
+      </div>
+
+      <div class="field">
+        <label>MRs / PRs per Month <span id="vMrs">720</span></label>
+        <input type="range" id="mrs" min="10" max="1000" step="10" value="720" />
       </div>
 
       <div class="field">
         <label>Vendor Seat Price / Yr <span id="vVendor">$700</span></label>
         <input type="range" id="vendor" min="300" max="1000" step="25" value="700" />
-      </div>
-
-      <div class="field">
-        <label>MRs per Dev / Month <span id="vMrs">12</span></label>
-        <input type="range" id="mrs" min="2" max="30" step="1" value="12" />
-      </div>
-
-      <div class="field">
-        <label>Weekly Maintenance <span id="vMaint">1.5 days/wk</span></label>
-        <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
       </div>
 
       <div class="field">
@@ -284,15 +284,19 @@
     </div>
 
     <details>
-      <summary>Setup &amp; onboarding assumptions</summary>
+      <summary>Maintenance &amp; setup assumptions</summary>
       <div class="inputs" style="margin-bottom:0;">
+        <div class="field">
+          <label>Internal Maint (1–2 d/wk) <span id="vMaint">1.5 days/wk</span></label>
+          <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
+        </div>
+        <div class="field">
+          <label>Vendor Team Maint / Team <span id="vVendorMaint">5% (~2h/wk)</span></label>
+          <input type="range" id="vendorMaint" min="0" max="15" step="1" value="5" />
+        </div>
         <div class="field">
           <label>Initial Build Setup <span id="vSetup">12 days</span></label>
           <input type="range" id="setup" min="0" max="30" step="1" value="12" />
-        </div>
-        <div class="field">
-          <label>Vendor Admin / Yr <span id="vAdmin">10 days</span></label>
-          <input type="range" id="admin" min="0" max="25" step="1" value="10" />
         </div>
       </div>
     </details>
@@ -300,12 +304,12 @@
     <div class="results">
       <div class="box" id="boxBuy">
         <div class="box-label">Buy Vendor Tool</div>
-        <div class="box-price" id="buyTotal">$46,000 <small>/ yr</small></div>
-        <div class="box-sub" id="buyPerDev">$767 per dev / yr</div>
+        <div class="box-price" id="buyTotal">$82,000 <small>/ yr</small></div>
+        <div class="box-sub" id="buyPerDev">$1,367 per dev / yr</div>
         <div class="breakdown">
-          <div class="row"><span>Seat licenses</span><span id="buySeats">$42,000</span></div>
-          <div class="row"><span>Setup &amp; admin</span><span id="buyAdmin">$4,000</span></div>
-          <div class="row"><span>Rule maintenance</span><span>Included</span></div>
+          <div class="row"><span>Seat licenses (<span id="lblDevs">60</span> devs)</span><span id="buySeats">$42,000</span></div>
+          <div class="row"><span>Team maint (<span id="lblTeams">8</span> × <span id="lblPct">5</span>% FTE)</span><span id="buyMaint">$40,000</span></div>
+          <div class="row"><span>Core rule engine</span><span>Vendor</span></div>
         </div>
       </div>
 
@@ -315,7 +319,7 @@
         <div class="box-sub" id="buildY2">Year 2+: $44,688 / yr</div>
         <div class="breakdown">
           <div class="row"><span>LLM tokens (<span id="totalMrs">720</span> MRs/mo)</span><span id="buildTokens">$14,688</span></div>
-          <div class="row"><span>Ongoing maintenance</span><span id="buildMaint">$30,000</span></div>
+          <div class="row"><span>All-in maint (<span id="lblMaintFte">30</span>% of 1 eng)</span><span id="buildMaint">$30,000</span></div>
           <div class="row"><span>Initial v1 setup</span><span id="buildSetup">$4,800</span></div>
         </div>
       </div>
@@ -332,55 +336,68 @@
     $('gateYes').onclick = () => { hasCapacity = true; $('gateYes').className = 'active'; $('gateNo').className = ''; calc(); };
     $('gateNo').onclick  = () => { hasCapacity = false; $('gateNo').className = 'active'; $('gateYes').className = ''; calc(); };
 
-    ['devs', 'vendor', 'mrs', 'maint', 'token', 'eng', 'setup', 'admin'].forEach(id => {
+    // Auto-scale teams (~7.5-8 devs/team) and MRs (~12 MRs/dev/mo, max 1000) when Active Developers changes
+    $('devs').addEventListener('input', () => {
+      const d = +$('devs').value;
+      const defaultTeams = d === 15 ? 2 : d === 35 ? 5 : d === 60 ? 8 : d === 100 ? 12 : Math.max(1, Math.round(d / 8));
+      $('teams').value = Math.min(65, defaultTeams);
+      $('mrs').value = Math.min(1000, Math.max(10, Math.round((d * 12) / 10) * 10));
+      calc();
+    });
+
+    ['teams', 'mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'].forEach(id => {
       $(id).addEventListener('input', calc);
     });
 
     function calc() {
-      const devs   = +$('devs').value;
-      const vendor = +$('vendor').value;
-      const mrs    = +$('mrs').value;
-      const maint  = +$('maint').value;
-      const token  = +$('token').value;
-      const eng    = +$('eng').value;
-      const setup  = +$('setup').value;
-      const admin  = +$('admin').value;
+      const devs        = +$('devs').value;
+      const teams       = +$('teams').value;
+      const mrs         = +$('mrs').value;
+      const vendor      = +$('vendor').value;
+      const token       = +$('token').value;
+      const eng         = +$('eng').value;
+      const maint       = +$('maint').value;
+      const vendorMaint = +$('vendorMaint').value;
+      const setup       = +$('setup').value;
 
-      $('vDevs').textContent   = devs;
-      $('vVendor').textContent = fmt(vendor);
-      $('vMrs').textContent    = mrs;
-      $('vMaint').textContent  = `${maint} days/wk`;
-      $('vToken').textContent  = `$${token.toFixed(2)}`;
-      $('vEng').textContent    = `${fmt(eng)}/day`;
-      $('vSetup').textContent  = `${setup} days`;
-      $('vAdmin').textContent  = `${admin} days`;
+      $('vDevs').textContent        = devs;
+      $('vTeams').textContent       = `${teams} ${teams === 1 ? 'team' : 'teams'}`;
+      $('vMrs').textContent         = mrs.toLocaleString();
+      $('vVendor').textContent      = fmt(vendor);
+      $('vToken').textContent       = `$${token.toFixed(2)}`;
+      $('vEng').textContent         = `${fmt(eng)}/day`;
+      $('vMaint').textContent       = `${maint} days/wk`;
+      $('vVendorMaint').textContent = `${vendorMaint}% (~${(vendorMaint * 0.4).toFixed(1).replace('.0','')}h/wk)`;
+      $('vSetup').textContent       = `${setup} days`;
 
-      const monthlyMrs = devs * mrs;
-      const buySeats   = devs * vendor;
-      const buyAdmin   = admin * eng;
-      const buyTotal   = buySeats + buyAdmin;
+      // Formulas from 01-build-vs-buy-tco-calculator.md:
+      // Total_Buy_Cost = (N_devs * P_vendor) + (N_teams * (T_maint_vendor/100) * 250 days * C_eng_day)
+      const buySeats = devs * vendor;
+      const buyMaint = teams * (vendorMaint / 100) * 250 * eng;
+      const buyTotal = buySeats + buyMaint;
 
-      const buildTokens = 12 * monthlyMrs * token;
+      // Total_Build_Cost = (12 * M_reviews * C_token) + (D_setup * C_eng_day) + (50 working wks * D_maint_build * C_eng_day)
+      const buildTokens = 12 * mrs * token;
       const buildMaint  = 50 * maint * eng;
       const buildSetup  = setup * eng;
       const buildTotal  = buildTokens + buildMaint + buildSetup;
       const buildY2     = buildTokens + buildMaint;
 
-      $('totalMrs').textContent    = monthlyMrs.toLocaleString();
+      $('lblDevs').textContent     = devs;
+      $('lblTeams').textContent    = teams;
+      $('lblPct').textContent      = vendorMaint;
       $('buyTotal').innerHTML      = `${fmt(buyTotal)} <small>/ yr</small>`;
       $('buyPerDev').textContent   = `${fmt(buyTotal / devs)} per dev / yr`;
       $('buySeats').textContent    = fmt(buySeats);
-      $('buyAdmin').textContent    = fmt(buyAdmin);
+      $('buyMaint').textContent    = fmt(buyMaint);
 
+      $('totalMrs').textContent    = mrs.toLocaleString();
+      $('lblMaintFte').textContent = Math.round((maint / 5) * 100);
       $('buildTotal').innerHTML    = `${fmt(buildTotal)} <small>/ yr</small>`;
       $('buildY2').textContent     = `Year 2+: ${fmt(buildY2)} / yr`;
       $('buildTokens').textContent  = fmt(buildTokens);
       $('buildMaint').textContent   = fmt(buildMaint);
       $('buildSetup').textContent   = fmt(buildSetup);
-
-      const margin = vendor - (12 * mrs * token);
-      const breakEven = margin > 0 ? Math.max(1, Math.ceil((buildMaint + buildSetup - buyAdmin) / margin)) : null;
-      const beText = breakEven ? ` (Break-even is ~${breakEven} developers.)` : '';
 
       const vBox = $('verdict');
       $('boxBuy').classList.remove('winner');
@@ -388,19 +405,19 @@
 
       if (!hasCapacity) {
         vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool</strong>Without 1–2 days/week of dedicated maintenance ownership, an internal review agent degrades into noise. Outsource rule maintenance to a vendor.`;
+        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool</strong>Without 1–2 days/week (20–40% of 1 person) to own internal rule maintenance, an internal review agent degrades into noise. Default to Buying.`;
         $('boxBuy').classList.add('winner');
-      } else if (buildTotal < buyTotal * 0.95) {
+      } else if (buildTotal < buyTotal * 0.92) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Saves ${fmt(buyTotal - buildTotal)} Yr 1 / ${fmt(buyTotal - buildY2)} Yr 2+)</strong>At ${devs} developers, building is cheaper than a ${fmt(vendor)}/seat quote and builds reusable in-house AI Ops capability across your SDLC.${beText}`;
+        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Saves ${fmt(buyTotal - buildTotal)} Yr 1 / ${fmt(buyTotal - buildY2)} Yr 2+)</strong>Across ${teams} teams, ${vendorMaint}% per-team vendor tuning (${fmt(buyMaint)}/yr) + ${fmt(buySeats)} in seats exceeds centralized internal maintenance (${fmt(buildMaint)}/yr)—plus building cultivates reusable in-house AI Ops capability.`;
         $('boxBuild').classList.add('winner');
-      } else if (buildY2 <= buyTotal * 1.05) {
+      } else if (buildY2 <= buyTotal * 1.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even)</strong>Year 1 costs are similar (${fmt(buyTotal)} Buy vs. ${fmt(buildTotal)} Build), and Build is ${fmt(buildY2)}/yr in Year 2+. Build if you want reusable AI Ops infrastructure; Buy if you only want code review.${beText}`;
+        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs / ${teams} Teams)</strong>Per-team vendor maintenance (${fmt(buyMaint)}/yr) + seats (${fmt(buySeats)}/yr) matches internal build cost (${fmt(buildTotal)} Yr 1 / ${fmt(buildY2)} Yr 2+). Build if you want reusable AI Ops infrastructure across your SDLC.`;
         $('boxBuild').classList.add('winner');
       } else {
         vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)} in Year 1)</strong>For ${devs} developers, ${fmt(buildMaint)}/yr in internal engineering maintenance outweighs vendor seat licenses.${beText}`;
+        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)} in Year 1)</strong>With ${teams} ${teams === 1 ? 'team' : 'teams'} (${fmt(buyMaint)}/yr in ${vendorMaint}% team maintenance), buying is still cheaper than dedicating ${maint} days/week (${fmt(buildMaint)}/yr) to an internal build.`;
         $('boxBuy').classList.add('winner');
       }
     }
