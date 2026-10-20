@@ -55,6 +55,74 @@
       margin-bottom: 1.25rem;
     }
 
+    /* Hover Tooltip */
+    .tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: help;
+    }
+
+    .tip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .tip:hover .tip-icon {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tip-box {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      width: 260px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.45;
+      padding: 0.55rem 0.7rem;
+      border-radius: 7px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translateY(4px);
+      z-index: 30;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .tip-box::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 16px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #0f172a transparent transparent transparent;
+    }
+
+    .tip:hover .tip-box {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     /* Toggles */
     .option-bar {
       display: flex;
@@ -124,13 +192,14 @@
     .field label {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--text);
       margin-bottom: 0.3rem;
     }
 
-    .field label span {
+    .field label > span.val {
       color: var(--accent);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
@@ -275,7 +344,6 @@
       margin: 0.9rem 0 0.45rem;
     }
 
-    /* Center crossover line */
     .gauge-center-line {
       position: absolute;
       left: 50%;
@@ -286,7 +354,6 @@
       opacity: 0.5;
     }
 
-    /* User position marker */
     .gauge-pin {
       position: absolute;
       top: 50%;
@@ -350,11 +417,15 @@
 
   <main class="calculator">
     <h1>AI Code Review: Build vs. Buy Calculator</h1>
-    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance &amp; AI Ops reuse.</p>
+    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance &amp; AI Ops reuse. Hover any <strong>?</strong> for details.</p>
 
     <div class="option-bar">
       <div>
-        <span>Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?</span>
+        <span class="tip">
+          Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?
+          <i class="tip-icon">?</i>
+          <span class="tip-box"><strong>AI Ops Readiness Gate:</strong> Building an internal review bot requires a named owner (with backup) spending 1–2 days/week curating rules, suppressing false positives, and evaluating quality. Without a dedicated owner, internal bots decay into ignored noise within 60 days.</span>
+        </span>
       </div>
       <div class="toggle">
         <button type="button" id="gateYes" class="active">Yes</button>
@@ -364,8 +435,12 @@
 
     <div class="option-bar dividend-bar">
       <div>
-        <span style="color:var(--indigo);font-weight:600;">Include "AI Ops Compounding Dividend" (Platform Reuse Value)</span>
-        <span class="option-sub">Credits 50% of internal AI Ops setup &amp; maintenance to reusable SDLC agents (Slack Q&amp;A, Ticket-to-MR, Release Ops)</span>
+        <span class="tip" style="color:var(--indigo);font-weight:600;">
+          Include "AI Ops Compounding Dividend" (Platform Reuse Value)
+          <i class="tip-icon">?</i>
+          <span class="tip-box"><strong>Why Building Compounds:</strong> When you pay a vendor, all learning stays inside the vendor. When you build internally, the context hierarchy (<code>CLAUDE.md</code>), Skill Registry, sandboxed runners, MCPs, and reflection loops you build immediately power other SDLC agents (Slack Q&amp;A, Ticket-to-MR, Release Ops)—crediting 50% of AI Ops engineering cost to broader platform reuse.</span>
+        </span>
+        <span class="option-sub">Credits 50% of internal AI Ops setup &amp; maintenance to reusable SDLC agents</span>
       </div>
       <div class="toggle">
         <button type="button" id="divYes" class="active">Included</button>
@@ -375,32 +450,74 @@
 
     <div class="inputs">
       <div class="field">
-        <label>Active Developers <span id="vDevs">60</span></label>
+        <label>
+          <span class="tip">
+            Active Developers
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Active Developers (N_devs):</strong> Number of engineers actively submitting and reviewing PRs/MRs. Directly multiplies commercial vendor seat license costs (<code>N_devs × Seat Price</code>).</span>
+          </span>
+          <span class="val" id="vDevs">60</span>
+        </label>
         <input type="range" id="devs" min="5" max="500" step="5" value="60" />
       </div>
 
       <div class="field">
-        <label>Engineering Teams <span id="vTeams">8 teams</span></label>
+        <label>
+          <span class="tip">
+            Engineering Teams
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Engineering Teams (N_teams):</strong> Number of squads (~7–8 devs/team). Why it matters: commercial vendor tools are not zero-maintenance—every team still spends ~5% of 1 engineer's time (~2 hrs/wk = ~$5k/team/yr) maintaining repo context files, skills, and evaluating vendor output for their services.</span>
+          </span>
+          <span class="val" id="vTeams">8 teams</span>
+        </label>
         <input type="range" id="teams" min="1" max="65" step="1" value="8" />
       </div>
 
       <div class="field">
-        <label>MRs / PRs per Month <span id="vMrs">720</span></label>
+        <label>
+          <span class="tip">
+            MRs / PRs per Month
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Monthly Reviews (M_reviews):</strong> Total pull/merge requests reviewed across your organization per month (benchmark: ~10–15 MRs per developer/month). Directly drives internal LLM API &amp; CI runner compute cost.</span>
+          </span>
+          <span class="val" id="vMrs">720</span>
+        </label>
         <input type="range" id="mrs" min="10" max="1000" step="10" value="720" />
       </div>
 
       <div class="field">
-        <label>Vendor Seat Price / Yr <span id="vVendor">$700</span></label>
+        <label>
+          <span class="tip">
+            Vendor Seat Price / Yr
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Annual Vendor Seat Quote (P_vendor):</strong> Commercial AI code review price per developer per year. Standard tiers average ~$400/dev/yr; enterprise quotes typically range from $500 to $700/dev/yr.</span>
+          </span>
+          <span class="val" id="vVendor">$700</span>
+        </label>
         <input type="range" id="vendor" min="300" max="1000" step="25" value="700" />
       </div>
 
       <div class="field">
-        <label>Token Cost / Review <span id="vToken">$1.70</span></label>
+        <label>
+          <span class="tip">
+            Token Cost / Review
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Compute Cost per Review (C_token):</strong> Average LLM API token + cloud CI runner compute cost per internal merge request review (~$1.70/review from production benchmark).</span>
+          </span>
+          <span class="val" id="vToken">$1.70</span>
+        </label>
         <input type="range" id="token" min="0.2" max="5" step="0.1" value="1.70" />
       </div>
 
       <div class="field">
-        <label>Senior Eng Daily Cost <span id="vEng">$400/day</span></label>
+        <label>
+          <span class="tip">
+            Senior Eng Daily Cost
+            <i class="tip-icon">?</i>
+            <span class="tip-box"><strong>Daily Engineering Cost (C_eng_day):</strong> Loaded annual Senior Engineer salary divided by 250 working days (e.g., $100,000/yr = $400/day). Used to price both centralized internal maintenance and per-team vendor tuning.</span>
+          </span>
+          <span class="val" id="vEng">$400/day</span>
+        </label>
         <input type="range" id="eng" min="200" max="1000" step="25" value="400" />
       </div>
     </div>
@@ -409,15 +526,36 @@
       <summary>Maintenance &amp; setup assumptions</summary>
       <div class="inputs" style="margin-bottom:0;">
         <div class="field">
-          <label>Internal Maint (1–2 d/wk) <span id="vMaint">1.5 days/wk</span></label>
+          <label>
+            <span class="tip">
+              Internal Maint (1–2 d/wk)
+              <i class="tip-icon">?</i>
+              <span class="tip-box"><strong>All-In Internal Maintenance (D_maint_build):</strong> Centralized weekly time (1–2 days/week = 20–40% of 1 Senior Engineer) spent curating rules, maintaining context/skills, and reviewing nightly MR reflection across the org.</span>
+            </span>
+            <span class="val" id="vMaint">1.5 days/wk</span>
+          </label>
           <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
         </div>
         <div class="field">
-          <label>Vendor Team Maint / Team <span id="vVendorMaint">5% (~2h/wk)</span></label>
+          <label>
+            <span class="tip">
+              Vendor Team Maint / Team
+              <i class="tip-icon">?</i>
+              <span class="tip-box"><strong>Per-Team Vendor Maintenance (T_maint_vendor):</strong> Ongoing effort each squad spends (~5% of 1 engineer = ~2 hrs/wk or 12.5 days/yr per team) maintaining repo context files, skills, and tuning/evaluating the commercial vendor tool.</span>
+            </span>
+            <span class="val" id="vVendorMaint">5% (~2h/wk)</span>
+          </label>
           <input type="range" id="vendorMaint" min="0" max="15" step="1" value="5" />
         </div>
         <div class="field">
-          <label>Initial Build Setup <span id="vSetup">12 days</span></label>
+          <label>
+            <span class="tip">
+              Initial Build Setup
+              <i class="tip-icon">?</i>
+              <span class="tip-box"><strong>Initial v1 Build &amp; Mining (D_setup):</strong> One-time Year 1 engineering days (10–15 days) to mine 6–12 months of historical merged MRs for defect patterns and deploy the shared cloud CI review agent.</span>
+            </span>
+            <span class="val" id="vSetup">12 days</span>
+          </label>
           <input type="range" id="setup" min="0" max="30" step="1" value="12" />
         </div>
       </div>
@@ -450,7 +588,11 @@
     <!-- Visual Decision Crossover Gauge -->
     <div class="gauge-card">
       <div class="gauge-header">
-        <span>Decision Position vs. Crossover Zone</span>
+        <span class="tip">
+          Decision Position vs. Crossover Zone
+          <i class="tip-icon">?</i>
+          <span class="tip-box"><strong>Crossover Spectrum:</strong> Shows how far your organization is from the Break-Even Crossover Zone where centralized internal build cost equals vendor seats + per-team vendor maintenance.</span>
+        </span>
         <span class="gauge-status" id="gaugeStatus">Break-even at ~20 devs</span>
       </div>
       <div class="gauge-track">
@@ -553,8 +695,6 @@
       $('buildCredit').textContent = `−${fmt(dividendCredit)}`;
 
       // Calculate approximate break-even developer count
-      // Per-dev Buy cost = vendor + (1/8 team * vendorMaint% * 250 * eng)
-      // Per-dev Build token cost = 12 * (mrs/devs) * token
       const mrsPerDev = mrs / Math.max(1, devs);
       const buyPerDevVar = vendor + ((teams / Math.max(1, devs)) * (vendorMaint / 100) * 250 * eng);
       const buildPerDevVar = 12 * mrsPerDev * token;
@@ -563,16 +703,15 @@
       const breakEvenDevs = netMarginPerDev > 0 ? Math.max(5, Math.round(fixedBuildNet / netMarginPerDev)) : 500;
 
       // Update Visual Gauge Position (50% = Crossover break-even where buildNet == buyTotal)
-      // Ratio: (buyTotal - buildNet) / max(buyTotal, buildNet) in [-1, 1]
       let score = 0;
       if (!hasCapacity) {
-        score = -0.85; // Forced into Buy Zone when gate fails
+        score = -0.85;
       } else {
         const diff = buyTotal - buildNet;
         const base = Math.max(1, (buyTotal + buildNet) / 2);
         score = Math.max(-0.92, Math.min(0.92, diff / base));
       }
-      const pctPos = 50 + (score * 46); // Maps [-0.92, 0.92] -> [8%, 92%]
+      const pctPos = 50 + (score * 46);
       $('gaugePin').style.left = `${pctPos.toFixed(1)}%`;
       $('gaugePinLabel').textContent = !hasCapacity ? 'No Owner → Buy' : `${devs} devs`;
       $('crossoverLabel').textContent = `Crossover (~${breakEvenDevs} devs)`;
