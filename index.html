@@ -16,6 +16,8 @@
       --green-bg: #ecfdf5;
       --amber: #d97706;
       --amber-bg: #fffbeb;
+      --indigo: #4f46e5;
+      --indigo-bg: #eef2ff;
       --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
     }
 
@@ -27,45 +29,59 @@
       font-family: var(--font);
       font-size: 14px;
       line-height: 1.5;
-      padding: 2rem 1rem;
+      padding: 1.75rem 1rem;
       -webkit-font-smoothing: antialiased;
     }
 
     .calculator {
-      max-width: 640px;
+      max-width: 650px;
       margin: 0 auto;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.75rem;
+      padding: 1.65rem;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
 
     h1 {
       font-size: 1.25rem;
       font-weight: 700;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     .sub {
       color: var(--muted);
-      font-size: 0.85rem;
-      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      margin-bottom: 1.25rem;
     }
 
-    /* Gate question */
-    .gate {
+    /* Toggles */
+    .option-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1rem;
-      padding: 0.75rem 1rem;
+      gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      margin-bottom: 1.25rem;
-      font-size: 0.85rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.82rem;
       font-weight: 500;
+    }
+
+    .option-bar.dividend-bar {
+      background: var(--indigo-bg);
+      border-color: #c7d2fe;
+      margin-bottom: 1.2rem;
+    }
+
+    .option-sub {
+      display: block;
+      font-size: 0.73rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-top: 0.1rem;
     }
 
     .toggle {
@@ -79,9 +95,9 @@
     .toggle button {
       border: none;
       background: transparent;
-      padding: 0.25rem 0.7rem;
+      padding: 0.24rem 0.65rem;
       border-radius: 5px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: var(--muted);
       cursor: pointer;
@@ -97,8 +113,8 @@
     .inputs {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem 1.25rem;
-      margin-bottom: 1rem;
+      gap: 0.9rem 1.25rem;
+      margin-bottom: 0.9rem;
     }
 
     @media (max-width: 520px) {
@@ -111,7 +127,7 @@
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--text);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.3rem;
     }
 
     .field label span {
@@ -127,7 +143,7 @@
     }
 
     details {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       font-size: 0.8rem;
       color: var(--muted);
     }
@@ -143,7 +159,7 @@
     .results {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 0.9rem;
       margin-bottom: 1rem;
     }
 
@@ -154,7 +170,7 @@
     .box {
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 1.1rem;
+      padding: 1rem;
       background: var(--bg);
     }
 
@@ -165,42 +181,42 @@
     }
 
     .box-label {
-      font-size: 0.75rem;
+      font-size: 0.73rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--muted);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     .box-price {
-      font-size: 1.65rem;
+      font-size: 1.6rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
     }
 
     .box-price small {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 500;
       color: var(--muted);
     }
 
     .box-sub {
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       color: var(--muted);
       margin-top: 0.15rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.65rem;
     }
 
     .breakdown {
       border-top: 1px solid var(--border);
-      padding-top: 0.6rem;
-      font-size: 0.78rem;
+      padding-top: 0.55rem;
+      font-size: 0.76rem;
       color: var(--muted);
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.22rem;
     }
 
     .row {
@@ -214,11 +230,104 @@
       font-weight: 600;
     }
 
+    .row.credit span {
+      color: var(--indigo);
+      font-weight: 600;
+    }
+
+    /* Visual Crossover Gauge */
+    .gauge-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem 0.8rem;
+      margin-bottom: 0.9rem;
+      background: #fff;
+    }
+
+    .gauge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 0.55rem;
+    }
+
+    .gauge-status {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .gauge-track {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg,
+        #fde68a 0%,
+        #fde68a 42%,
+        #dbeafe 42%,
+        #dbeafe 58%,
+        #a7f3d0 58%,
+        #6ee7b7 100%
+      );
+      border: 1px solid #cbd5e1;
+      margin: 0.9rem 0 0.45rem;
+    }
+
+    /* Center crossover line */
+    .gauge-center-line {
+      position: absolute;
+      left: 50%;
+      top: -5px;
+      bottom: -5px;
+      width: 2px;
+      background: #475569;
+      opacity: 0.5;
+    }
+
+    /* User position marker */
+    .gauge-pin {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 3px solid #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      transition: left 0.2s ease;
+      z-index: 2;
+    }
+
+    .gauge-pin-label {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      font-weight: 700;
+      white-space: nowrap;
+      background: var(--text);
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
     /* Verdict */
     .verdict {
-      padding: 0.9rem 1rem;
+      padding: 0.85rem 1rem;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       background: var(--amber-bg);
       color: #78350f;
       border: 1px solid #fde68a;
@@ -232,7 +341,7 @@
 
     .verdict strong {
       display: block;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       margin-bottom: 0.15rem;
     }
   </style>
@@ -241,13 +350,26 @@
 
   <main class="calculator">
     <h1>AI Code Review: Build vs. Buy Calculator</h1>
-    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance on both sides.</p>
+    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance &amp; AI Ops reuse.</p>
 
-    <div class="gate">
-      <span>Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?</span>
+    <div class="option-bar">
+      <div>
+        <span>Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?</span>
+      </div>
       <div class="toggle">
         <button type="button" id="gateYes" class="active">Yes</button>
         <button type="button" id="gateNo">No</button>
+      </div>
+    </div>
+
+    <div class="option-bar dividend-bar">
+      <div>
+        <span style="color:var(--indigo);font-weight:600;">Include "AI Ops Compounding Dividend" (Platform Reuse Value)</span>
+        <span class="option-sub">Credits 50% of internal AI Ops setup &amp; maintenance to reusable SDLC agents (Slack Q&amp;A, Ticket-to-MR, Release Ops)</span>
+      </div>
+      <div class="toggle">
+        <button type="button" id="divYes" class="active">Included</button>
+        <button type="button" id="divNo">Off</button>
       </div>
     </div>
 
@@ -309,19 +431,38 @@
         <div class="breakdown">
           <div class="row"><span>Seat licenses (<span id="lblDevs">60</span> devs)</span><span id="buySeats">$42,000</span></div>
           <div class="row"><span>Team maint (<span id="lblTeams">8</span> × <span id="lblPct">5</span>% FTE)</span><span id="buyMaint">$40,000</span></div>
-          <div class="row"><span>Core rule engine</span><span>Vendor</span></div>
+          <div class="row"><span>Reusable AI Ops asset</span><span>$0 (Stays in vendor)</span></div>
         </div>
       </div>
 
       <div class="box" id="boxBuild">
         <div class="box-label">Build Internal Agent</div>
-        <div class="box-price" id="buildTotal">$49,488 <small>/ yr</small></div>
-        <div class="box-sub" id="buildY2">Year 2+: $44,688 / yr</div>
+        <div class="box-price" id="buildTotal">$32,088 <small>/ yr</small></div>
+        <div class="box-sub" id="buildSub">Gross cash: $49,488 (Yr 2+: $44,688)</div>
         <div class="breakdown">
           <div class="row"><span>LLM tokens (<span id="totalMrs">720</span> MRs/mo)</span><span id="buildTokens">$14,688</span></div>
-          <div class="row"><span>All-in maint (<span id="lblMaintFte">30</span>% of 1 eng)</span><span id="buildMaint">$30,000</span></div>
-          <div class="row"><span>Initial v1 setup</span><span id="buildSetup">$4,800</span></div>
+          <div class="row"><span>All-in maint + v1 setup</span><span id="buildEng">$34,800</span></div>
+          <div class="row credit" id="dividendRow"><span>AI Ops SDLC reuse credit (50%)</span><span id="buildCredit">−$17,400</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Visual Decision Crossover Gauge -->
+    <div class="gauge-card">
+      <div class="gauge-header">
+        <span>Decision Position vs. Crossover Zone</span>
+        <span class="gauge-status" id="gaugeStatus">Break-even at ~20 devs</span>
+      </div>
+      <div class="gauge-track">
+        <div class="gauge-center-line" title="Break-Even Crossover Point"></div>
+        <div class="gauge-pin" id="gaugePin" style="left: 75%;">
+          <span class="gauge-pin-label" id="gaugePinLabel">You</span>
+        </div>
+      </div>
+      <div class="gauge-labels">
+        <span style="color:var(--amber);">◀ Buy Zone (Vendor Cheaper)</span>
+        <span id="crossoverLabel">Crossover (~20 devs)</span>
+        <span style="color:var(--green);">Build Zone (Internal Advantage) ▶</span>
       </div>
     </div>
 
@@ -332,11 +473,14 @@
     const $ = id => document.getElementById(id);
     const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
     let hasCapacity = true;
+    let includeDividend = true;
 
     $('gateYes').onclick = () => { hasCapacity = true; $('gateYes').className = 'active'; $('gateNo').className = ''; calc(); };
     $('gateNo').onclick  = () => { hasCapacity = false; $('gateNo').className = 'active'; $('gateYes').className = ''; calc(); };
 
-    // Auto-scale teams (~7.5-8 devs/team) and MRs (~12 MRs/dev/mo, max 1000) when Active Developers changes
+    $('divYes').onclick = () => { includeDividend = true; $('divYes').className = 'active'; $('divNo').className = ''; calc(); };
+    $('divNo').onclick  = () => { includeDividend = false; $('divNo').className = 'active'; $('divYes').className = ''; calc(); };
+
     $('devs').addEventListener('input', () => {
       const d = +$('devs').value;
       const defaultTeams = d === 15 ? 2 : d === 35 ? 5 : d === 60 ? 8 : d === 100 ? 12 : Math.max(1, Math.round(d / 8));
@@ -370,34 +514,80 @@
       $('vVendorMaint').textContent = `${vendorMaint}% (~${(vendorMaint * 0.4).toFixed(1).replace('.0','')}h/wk)`;
       $('vSetup').textContent       = `${setup} days`;
 
-      // Formulas from 01-build-vs-buy-tco-calculator.md:
-      // Total_Buy_Cost = (N_devs * P_vendor) + (N_teams * (T_maint_vendor/100) * 250 days * C_eng_day)
+      // Buy Cost
       const buySeats = devs * vendor;
       const buyMaint = teams * (vendorMaint / 100) * 250 * eng;
       const buyTotal = buySeats + buyMaint;
 
-      // Total_Build_Cost = (12 * M_reviews * C_token) + (D_setup * C_eng_day) + (50 working wks * D_maint_build * C_eng_day)
+      // Build Cost
       const buildTokens = 12 * mrs * token;
       const buildMaint  = 50 * maint * eng;
       const buildSetup  = setup * eng;
-      const buildTotal  = buildTokens + buildMaint + buildSetup;
-      const buildY2     = buildTokens + buildMaint;
+      const buildEng    = buildMaint + buildSetup;
+      const buildGross  = buildTokens + buildEng;
+      const buildY2Gross = buildTokens + buildMaint;
 
-      $('lblDevs').textContent     = devs;
-      $('lblTeams').textContent    = teams;
-      $('lblPct').textContent      = vendorMaint;
-      $('buyTotal').innerHTML      = `${fmt(buyTotal)} <small>/ yr</small>`;
-      $('buyPerDev').textContent   = `${fmt(buyTotal / devs)} per dev / yr`;
-      $('buySeats').textContent    = fmt(buySeats);
-      $('buyMaint').textContent    = fmt(buyMaint);
+      // AI Ops Compounding Dividend: 50% of AI Ops engineering investment (setup + maint)
+      // is reusable across other SDLC agents (Slack Q&A, Ticket-to-MR, Release Ops)
+      const dividendCredit = includeDividend ? Math.round(buildEng * 0.5) : 0;
+      const dividendCreditY2 = includeDividend ? Math.round(buildMaint * 0.5) : 0;
+      const buildNet = buildGross - dividendCredit;
+      const buildY2Net = buildY2Gross - dividendCreditY2;
+
+      $('lblDevs').textContent   = devs;
+      $('lblTeams').textContent  = teams;
+      $('lblPct').textContent    = vendorMaint;
+      $('buyTotal').innerHTML    = `${fmt(buyTotal)} <small>/ yr</small>`;
+      $('buyPerDev').textContent = `${fmt(buyTotal / devs)} per dev / yr`;
+      $('buySeats').textContent  = fmt(buySeats);
+      $('buyMaint').textContent  = fmt(buyMaint);
 
       $('totalMrs').textContent    = mrs.toLocaleString();
-      $('lblMaintFte').textContent = Math.round((maint / 5) * 100);
-      $('buildTotal').innerHTML    = `${fmt(buildTotal)} <small>/ yr</small>`;
-      $('buildY2').textContent     = `Year 2+: ${fmt(buildY2)} / yr`;
-      $('buildTokens').textContent  = fmt(buildTokens);
-      $('buildMaint').textContent   = fmt(buildMaint);
-      $('buildSetup').textContent   = fmt(buildSetup);
+      $('buildTotal').innerHTML    = `${fmt(buildNet)} <small>/ yr</small>`;
+      $('buildSub').textContent    = includeDividend
+        ? `Gross cash: ${fmt(buildGross)} (Yr 2+ net: ${fmt(buildY2Net)})`
+        : `Year 2+: ${fmt(buildY2Gross)} / yr`;
+      $('buildTokens').textContent = fmt(buildTokens);
+      $('buildEng').textContent    = fmt(buildEng);
+      $('dividendRow').style.display = includeDividend ? 'flex' : 'none';
+      $('buildCredit').textContent = `−${fmt(dividendCredit)}`;
+
+      // Calculate approximate break-even developer count
+      // Per-dev Buy cost = vendor + (1/8 team * vendorMaint% * 250 * eng)
+      // Per-dev Build token cost = 12 * (mrs/devs) * token
+      const mrsPerDev = mrs / Math.max(1, devs);
+      const buyPerDevVar = vendor + ((teams / Math.max(1, devs)) * (vendorMaint / 100) * 250 * eng);
+      const buildPerDevVar = 12 * mrsPerDev * token;
+      const netMarginPerDev = buyPerDevVar - buildPerDevVar;
+      const fixedBuildNet = buildEng - dividendCredit;
+      const breakEvenDevs = netMarginPerDev > 0 ? Math.max(5, Math.round(fixedBuildNet / netMarginPerDev)) : 500;
+
+      // Update Visual Gauge Position (50% = Crossover break-even where buildNet == buyTotal)
+      // Ratio: (buyTotal - buildNet) / max(buyTotal, buildNet) in [-1, 1]
+      let score = 0;
+      if (!hasCapacity) {
+        score = -0.85; // Forced into Buy Zone when gate fails
+      } else {
+        const diff = buyTotal - buildNet;
+        const base = Math.max(1, (buyTotal + buildNet) / 2);
+        score = Math.max(-0.92, Math.min(0.92, diff / base));
+      }
+      const pctPos = 50 + (score * 46); // Maps [-0.92, 0.92] -> [8%, 92%]
+      $('gaugePin').style.left = `${pctPos.toFixed(1)}%`;
+      $('gaugePinLabel').textContent = !hasCapacity ? 'No Owner → Buy' : `${devs} devs`;
+      $('crossoverLabel').textContent = `Crossover (~${breakEvenDevs} devs)`;
+
+      const delta = Math.abs(buyTotal - buildNet);
+      const pctDiff = Math.round((delta / Math.max(1, buyTotal)) * 100);
+      if (!hasCapacity) {
+        $('gaugeStatus').textContent = 'Locked to Buy (No 1–2 d/wk owner)';
+      } else if (Math.abs(score) <= 0.08) {
+        $('gaugeStatus').textContent = `Right on the Crossover Edge (~${breakEvenDevs} devs)`;
+      } else if (score > 0) {
+        $('gaugeStatus').textContent = `+${devs - breakEvenDevs} devs past Crossover (${pctDiff}% cheaper to Build)`;
+      } else {
+        $('gaugeStatus').textContent = `${Math.max(1, breakEvenDevs - devs)} devs below Crossover (${fmt(delta)} cheaper to Buy)`;
+      }
 
       const vBox = $('verdict');
       $('boxBuy').classList.remove('winner');
@@ -407,17 +597,17 @@
         vBox.className = 'verdict';
         vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool</strong>Without 1–2 days/week (20–40% of 1 person) to own internal rule maintenance, an internal review agent degrades into noise. Default to Buying.`;
         $('boxBuy').classList.add('winner');
-      } else if (buildTotal < buyTotal * 0.92) {
+      } else if (score > 0.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Saves ${fmt(buyTotal - buildTotal)} Yr 1 / ${fmt(buyTotal - buildY2)} Yr 2+)</strong>Across ${teams} teams, ${vendorMaint}% per-team vendor tuning (${fmt(buyMaint)}/yr) + ${fmt(buySeats)} in seats exceeds centralized internal maintenance (${fmt(buildMaint)}/yr)—plus building cultivates reusable in-house AI Ops capability.`;
+        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Net Advantage: ${fmt(buyTotal - buildNet)}/yr)</strong>Across ${teams} teams, ${vendorMaint}% per-team vendor tuning (${fmt(buyMaint)}/yr) + ${fmt(buySeats)} in seats costs far more than centralized internal maintenance${includeDividend ? `—especially once you credit ${fmt(dividendCredit)}/yr in reusable AI Ops infrastructure across your SDLC` : ''}.`;
         $('boxBuild').classList.add('winner');
-      } else if (buildY2 <= buyTotal * 1.08) {
+      } else if (score >= -0.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs / ${teams} Teams)</strong>Per-team vendor maintenance (${fmt(buyMaint)}/yr) + seats (${fmt(buySeats)}/yr) matches internal build cost (${fmt(buildTotal)} Yr 1 / ${fmt(buildY2)} Yr 2+). Build if you want reusable AI Ops infrastructure across your SDLC.`;
+        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs)</strong>You are right on the decision edge (${fmt(buyTotal)} Buy vs. ${fmt(buildNet)} net Build). Choose Build to own reusable AI Ops infrastructure across your SDLC; choose Buy if you only want code review.`;
         $('boxBuild').classList.add('winner');
       } else {
         vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)} in Year 1)</strong>With ${teams} ${teams === 1 ? 'team' : 'teams'} (${fmt(buyMaint)}/yr in ${vendorMaint}% team maintenance), buying is still cheaper than dedicating ${maint} days/week (${fmt(buildMaint)}/yr) to an internal build.`;
+        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildNet - buyTotal)}/yr)</strong>At ${devs} developers (${teams} ${teams === 1 ? 'team' : 'teams'}), you are below the ~${breakEvenDevs}-developer crossover threshold—buying is still cheaper than funding ${maint} days/week of internal maintenance.`;
         $('boxBuy').classList.add('winner');
       }
     }
