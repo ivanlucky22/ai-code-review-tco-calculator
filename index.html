@@ -16,8 +16,6 @@
       --green-bg: #ecfdf5;
       --amber: #d97706;
       --amber-bg: #fffbeb;
-      --indigo: #4f46e5;
-      --indigo-bg: #eef2ff;
       --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
     }
 
@@ -123,7 +121,7 @@
       transform: translateY(0);
     }
 
-    /* Toggles */
+    /* Gate Toggle */
     .option-bar {
       display: flex;
       justify-content: space-between;
@@ -133,23 +131,9 @@
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      margin-bottom: 0.6rem;
+      margin-bottom: 1.25rem;
       font-size: 0.82rem;
       font-weight: 500;
-    }
-
-    .option-bar.dividend-bar {
-      background: var(--indigo-bg);
-      border-color: #c7d2fe;
-      margin-bottom: 1.2rem;
-    }
-
-    .option-sub {
-      display: block;
-      font-size: 0.73rem;
-      color: var(--muted);
-      font-weight: 400;
-      margin-top: 0.1rem;
     }
 
     .toggle {
@@ -299,11 +283,6 @@
       font-weight: 600;
     }
 
-    .row.credit span {
-      color: var(--indigo);
-      font-weight: 600;
-    }
-
     /* Visual Crossover Gauge */
     .gauge-card {
       border: 1px solid var(--border);
@@ -417,7 +396,7 @@
 
   <main class="calculator">
     <h1>AI Code Review: Build vs. Buy Calculator</h1>
-    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance &amp; AI Ops reuse. Hover any <strong>?</strong> for details.</p>
+    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance. Hover any <strong>?</strong> for details.</p>
 
     <div class="option-bar">
       <div>
@@ -430,21 +409,6 @@
       <div class="toggle">
         <button type="button" id="gateYes" class="active">Yes</button>
         <button type="button" id="gateNo">No</button>
-      </div>
-    </div>
-
-    <div class="option-bar dividend-bar">
-      <div>
-        <span class="tip" style="color:var(--indigo);font-weight:600;">
-          Include "AI Ops Compounding Dividend" (Platform Reuse Value)
-          <i class="tip-icon">?</i>
-          <span class="tip-box"><strong>Why Building Compounds:</strong> When you pay a vendor, all learning stays inside the vendor. When you build internally, the context hierarchy (<code>CLAUDE.md</code>), Skill Registry, sandboxed runners, MCPs, and reflection loops you build immediately power other SDLC agents (Slack Q&amp;A, Ticket-to-MR, Release Ops)—crediting 50% of AI Ops engineering cost to broader platform reuse.</span>
-        </span>
-        <span class="option-sub">Credits 50% of internal AI Ops setup &amp; maintenance to reusable SDLC agents</span>
-      </div>
-      <div class="toggle">
-        <button type="button" id="divYes" class="active">Included</button>
-        <button type="button" id="divNo">Off</button>
       </div>
     </div>
 
@@ -558,18 +522,18 @@
         <div class="breakdown">
           <div class="row"><span>Seat licenses (<span id="lblDevs">60</span> devs)</span><span id="buySeats">$42,000</span></div>
           <div class="row"><span>Context &amp; skill maint (<span id="lblPct">5</span>%/team)</span><span id="buyMaint">$40,000</span></div>
-          <div class="row"><span>Reusable AI Ops asset</span><span>$0 (Stays in vendor)</span></div>
+          <div class="row"><span>Core rule engine</span><span>Vendor</span></div>
         </div>
       </div>
 
       <div class="box" id="boxBuild">
         <div class="box-label">Build Internal Agent</div>
-        <div class="box-price" id="buildTotal">$32,088 <small>/ yr</small></div>
-        <div class="box-sub" id="buildSub">Gross cash: $49,488 (Yr 2+: $44,688)</div>
+        <div class="box-price" id="buildTotal">$49,488 <small>/ yr</small></div>
+        <div class="box-sub" id="buildSub">Year 2+: $44,688 / yr</div>
         <div class="breakdown">
           <div class="row"><span>LLM tokens (<span id="totalMrs">720</span> MRs/mo)</span><span id="buildTokens">$14,688</span></div>
-          <div class="row"><span>All-in maint + v1 setup</span><span id="buildEng">$34,800</span></div>
-          <div class="row credit" id="dividendRow"><span>AI Ops SDLC reuse credit (50%)</span><span id="buildCredit">−$17,400</span></div>
+          <div class="row"><span>All-in maint (1.5 d/wk)</span><span id="buildMaint">$30,000</span></div>
+          <div class="row"><span>Initial v1 setup</span><span id="buildSetup">$4,800</span></div>
         </div>
       </div>
     </div>
@@ -582,7 +546,7 @@
           <i class="tip-icon">?</i>
           <span class="tip-box"><strong>Crossover Spectrum:</strong> Shows how far your organization is from the Break-Even Crossover Zone where centralized internal build cost equals vendor seats + ongoing vendor context maintenance.</span>
         </span>
-        <span class="gauge-status" id="gaugeStatus">Break-even at ~20 devs</span>
+        <span class="gauge-status" id="gaugeStatus">Break-even at ~35 devs</span>
       </div>
       <div class="gauge-track">
         <div class="gauge-center-line" title="Break-Even Crossover Point"></div>
@@ -592,7 +556,7 @@
       </div>
       <div class="gauge-labels">
         <span style="color:var(--amber);">◀ Buy Zone (Vendor Cheaper)</span>
-        <span id="crossoverLabel">Crossover (~20 devs)</span>
+        <span id="crossoverLabel">Crossover (~35 devs)</span>
         <span style="color:var(--green);">Build Zone (Internal Advantage) ▶</span>
       </div>
     </div>
@@ -604,13 +568,9 @@
     const $ = id => document.getElementById(id);
     const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
     let hasCapacity = true;
-    let includeDividend = true;
 
     $('gateYes').onclick = () => { hasCapacity = true; $('gateYes').className = 'active'; $('gateNo').className = ''; calc(); };
     $('gateNo').onclick  = () => { hasCapacity = false; $('gateNo').className = 'active'; $('gateYes').className = ''; calc(); };
-
-    $('divYes').onclick = () => { includeDividend = true; $('divYes').className = 'active'; $('divNo').className = ''; calc(); };
-    $('divNo').onclick  = () => { includeDividend = false; $('divNo').className = 'active'; $('divYes').className = ''; calc(); };
 
     $('devs').addEventListener('input', () => {
       const d = +$('devs').value;
@@ -653,15 +613,8 @@
       const buildTokens = 12 * mrs * token;
       const buildMaint  = 50 * maint * eng;
       const buildSetup  = setup * eng;
-      const buildEng    = buildMaint + buildSetup;
-      const buildGross  = buildTokens + buildEng;
-      const buildY2Gross = buildTokens + buildMaint;
-
-      // AI Ops Compounding Dividend: 50% of AI Ops engineering investment
-      const dividendCredit = includeDividend ? Math.round(buildEng * 0.5) : 0;
-      const dividendCreditY2 = includeDividend ? Math.round(buildMaint * 0.5) : 0;
-      const buildNet = buildGross - dividendCredit;
-      const buildY2Net = buildY2Gross - dividendCreditY2;
+      const buildTotal  = buildTokens + buildMaint + buildSetup;
+      const buildY2     = buildTokens + buildMaint;
 
       $('lblDevs').textContent   = devs;
       $('lblPct').textContent    = vendorMaint;
@@ -671,30 +624,27 @@
       $('buyMaint').textContent  = fmt(buyMaint);
 
       $('totalMrs').textContent    = mrs.toLocaleString();
-      $('buildTotal').innerHTML    = `${fmt(buildNet)} <small>/ yr</small>`;
-      $('buildSub').textContent    = includeDividend
-        ? `Gross cash: ${fmt(buildGross)} (Yr 2+ net: ${fmt(buildY2Net)})`
-        : `Year 2+: ${fmt(buildY2Gross)} / yr`;
+      $('buildTotal').innerHTML    = `${fmt(buildTotal)} <small>/ yr</small>`;
+      $('buildSub').textContent    = `Year 2+: ${fmt(buildY2)} / yr`;
       $('buildTokens').textContent = fmt(buildTokens);
-      $('buildEng').textContent    = fmt(buildEng);
-      $('dividendRow').style.display = includeDividend ? 'flex' : 'none';
-      $('buildCredit').textContent = `−${fmt(dividendCredit)}`;
+      $('buildMaint').textContent  = fmt(buildMaint);
+      $('buildSetup').textContent  = fmt(buildSetup);
 
       // Calculate approximate break-even developer count
       const mrsPerDev = mrs / Math.max(1, devs);
       const buyPerDevVar = vendor + ((1 / 8) * (vendorMaint / 100) * 250 * eng);
       const buildPerDevVar = 12 * mrsPerDev * token;
       const netMarginPerDev = buyPerDevVar - buildPerDevVar;
-      const fixedBuildNet = buildEng - dividendCredit;
-      const breakEvenDevs = netMarginPerDev > 0 ? Math.max(5, Math.round(fixedBuildNet / netMarginPerDev)) : 500;
+      const fixedBuild = buildMaint + buildSetup;
+      const breakEvenDevs = netMarginPerDev > 0 ? Math.max(5, Math.round(fixedBuild / netMarginPerDev)) : 500;
 
-      // Update Visual Gauge Position (50% = Crossover break-even where buildNet == buyTotal)
+      // Update Visual Gauge Position (50% = Crossover break-even where buildTotal == buyTotal)
       let score = 0;
       if (!hasCapacity) {
         score = -0.85;
       } else {
-        const diff = buyTotal - buildNet;
-        const base = Math.max(1, (buyTotal + buildNet) / 2);
+        const diff = buyTotal - buildTotal;
+        const base = Math.max(1, (buyTotal + buildTotal) / 2);
         score = Math.max(-0.92, Math.min(0.92, diff / base));
       }
       const pctPos = 50 + (score * 46);
@@ -702,7 +652,7 @@
       $('gaugePinLabel').textContent = !hasCapacity ? 'No Owner → Buy' : `${devs} devs`;
       $('crossoverLabel').textContent = `Crossover (~${breakEvenDevs} devs)`;
 
-      const delta = Math.abs(buyTotal - buildNet);
+      const delta = Math.abs(buyTotal - buildTotal);
       const pctDiff = Math.round((delta / Math.max(1, buyTotal)) * 100);
       if (!hasCapacity) {
         $('gaugeStatus').textContent = 'Locked to Buy (No 1–2 d/wk owner)';
@@ -724,15 +674,15 @@
         $('boxBuy').classList.add('winner');
       } else if (score > 0.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Net Advantage: ${fmt(buyTotal - buildNet)}/yr)</strong>At ${devs} developers, vendor seats (${fmt(buySeats)}/yr) + ongoing context/skill tuning (${fmt(buyMaint)}/yr) costs far more than centralized internal maintenance${includeDividend ? `—especially once you credit ${fmt(dividendCredit)}/yr in reusable AI Ops infrastructure across your SDLC` : ''}.`;
+        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Saves ${fmt(buyTotal - buildTotal)} Yr 1 / ${fmt(buyTotal - buildY2)} Yr 2+)</strong>At ${devs} developers, vendor seats (${fmt(buySeats)}/yr) + ongoing context/skill tuning (${fmt(buyMaint)}/yr) costs far more than centralized internal maintenance (${fmt(buildMaint)}/yr).`;
         $('boxBuild').classList.add('winner');
       } else if (score >= -0.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs)</strong>You are right on the decision edge (${fmt(buyTotal)} Buy vs. ${fmt(buildNet)} net Build). Choose Build to own reusable AI Ops infrastructure across your SDLC; choose Buy if you only want code review.`;
+        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs)</strong>You are right on the decision edge (${fmt(buyTotal)} Buy vs. ${fmt(buildTotal)} Build). Choose Build to own internal AI capability; choose Buy if you want zero platform responsibility.`;
         $('boxBuild').classList.add('winner');
       } else {
         vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildNet - buyTotal)}/yr)</strong>At ${devs} developers, you are below the ~${breakEvenDevs}-developer crossover threshold—buying is still cheaper than funding ${maint} days/week of internal maintenance.`;
+        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)}/yr in Year 1)</strong>At ${devs} developers, you are below the ~${breakEvenDevs}-developer crossover threshold—buying is cheaper than funding ${maint} days/week of internal maintenance.`;
         $('boxBuy').classList.add('winner');
       }
     }
