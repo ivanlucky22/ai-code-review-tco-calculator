@@ -454,7 +454,7 @@
           <span class="tip">
             Active Developers
             <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Active Developers (N_devs):</strong> Number of engineers actively submitting and reviewing PRs/MRs. Directly multiplies commercial vendor seat license costs (<code>N_devs × Seat Price</code>).</span>
+            <span class="tip-box"><strong>Active Developers (N_devs):</strong> Number of engineers actively submitting and reviewing PRs/MRs. Drives commercial vendor seat licenses and team-level context maintenance (~1 squad per 7–8 devs).</span>
           </span>
           <span class="val" id="vDevs">60</span>
         </label>
@@ -464,13 +464,13 @@
       <div class="field">
         <label>
           <span class="tip">
-            Engineering Teams
+            Vendor Seat Price / Yr
             <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Engineering Teams (N_teams):</strong> Number of squads (~7–8 devs/team). Why it matters: commercial vendor tools are not zero-maintenance—every team still spends ~5% of 1 engineer's time (~2 hrs/wk = ~$5k/team/yr) maintaining repo context files, skills, and evaluating vendor output for their services.</span>
+            <span class="tip-box"><strong>Annual Vendor Seat Quote (P_vendor):</strong> Commercial AI code review price per developer per year. Standard tiers average ~$400/dev/yr; enterprise quotes typically range from $500 to $700/dev/yr.</span>
           </span>
-          <span class="val" id="vTeams">8 teams</span>
+          <span class="val" id="vVendor">$700</span>
         </label>
-        <input type="range" id="teams" min="1" max="65" step="1" value="8" />
+        <input type="range" id="vendor" min="300" max="1000" step="25" value="700" />
       </div>
 
       <div class="field">
@@ -488,13 +488,13 @@
       <div class="field">
         <label>
           <span class="tip">
-            Vendor Seat Price / Yr
+            Internal Maint (1–2 d/wk)
             <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Annual Vendor Seat Quote (P_vendor):</strong> Commercial AI code review price per developer per year. Standard tiers average ~$400/dev/yr; enterprise quotes typically range from $500 to $700/dev/yr.</span>
+            <span class="tip-box"><strong>All-In Internal Maintenance (D_maint_build):</strong> Centralized weekly time (1–2 days/week = 20–40% of 1 Senior Engineer) spent curating rules, maintaining context/skills, and reviewing nightly MR reflection across the org.</span>
           </span>
-          <span class="val" id="vVendor">$700</span>
+          <span class="val" id="vMaint">1.5 days/wk</span>
         </label>
-        <input type="range" id="vendor" min="300" max="1000" step="25" value="700" />
+        <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
       </div>
 
       <div class="field">
@@ -514,7 +514,7 @@
           <span class="tip">
             Senior Eng Daily Cost
             <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Daily Engineering Cost (C_eng_day):</strong> Loaded annual Senior Engineer salary divided by 250 working days (e.g., $100,000/yr = $400/day). Used to price both centralized internal maintenance and per-team vendor tuning.</span>
+            <span class="tip-box"><strong>Daily Engineering Cost (C_eng_day):</strong> Loaded annual Senior Engineer salary divided by 250 working days (e.g., $100,000/yr = $400/day). Used to price both centralized internal maintenance and vendor context tuning.</span>
           </span>
           <span class="val" id="vEng">$400/day</span>
         </label>
@@ -523,25 +523,14 @@
     </div>
 
     <details>
-      <summary>Maintenance &amp; setup assumptions</summary>
+      <summary>Setup &amp; vendor maintenance assumptions</summary>
       <div class="inputs" style="margin-bottom:0;">
         <div class="field">
           <label>
             <span class="tip">
-              Internal Maint (1–2 d/wk)
+              Vendor Maint / Team
               <i class="tip-icon">?</i>
-              <span class="tip-box"><strong>All-In Internal Maintenance (D_maint_build):</strong> Centralized weekly time (1–2 days/week = 20–40% of 1 Senior Engineer) spent curating rules, maintaining context/skills, and reviewing nightly MR reflection across the org.</span>
-            </span>
-            <span class="val" id="vMaint">1.5 days/wk</span>
-          </label>
-          <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
-        </div>
-        <div class="field">
-          <label>
-            <span class="tip">
-              Vendor Team Maint / Team
-              <i class="tip-icon">?</i>
-              <span class="tip-box"><strong>Per-Team Vendor Maintenance (T_maint_vendor):</strong> Ongoing effort each squad spends (~5% of 1 engineer = ~2 hrs/wk or 12.5 days/yr per team) maintaining repo context files, skills, and tuning/evaluating the commercial vendor tool.</span>
+              <span class="tip-box"><strong>Vendor Context &amp; Skill Maintenance:</strong> Commercial tools are not zero-maintenance—each squad (~7–8 devs) still spends ~5% of 1 engineer's time (~2 hrs/wk or ~$5k/team/yr) maintaining repo context files, skills, and tuning vendor rules.</span>
             </span>
             <span class="val" id="vVendorMaint">5% (~2h/wk)</span>
           </label>
@@ -568,7 +557,7 @@
         <div class="box-sub" id="buyPerDev">$1,367 per dev / yr</div>
         <div class="breakdown">
           <div class="row"><span>Seat licenses (<span id="lblDevs">60</span> devs)</span><span id="buySeats">$42,000</span></div>
-          <div class="row"><span>Team maint (<span id="lblTeams">8</span> × <span id="lblPct">5</span>% FTE)</span><span id="buyMaint">$40,000</span></div>
+          <div class="row"><span>Context &amp; skill maint (<span id="lblPct">5</span>%/team)</span><span id="buyMaint">$40,000</span></div>
           <div class="row"><span>Reusable AI Ops asset</span><span>$0 (Stays in vendor)</span></div>
         </div>
       </div>
@@ -591,7 +580,7 @@
         <span class="tip">
           Decision Position vs. Crossover Zone
           <i class="tip-icon">?</i>
-          <span class="tip-box"><strong>Crossover Spectrum:</strong> Shows how far your organization is from the Break-Even Crossover Zone where centralized internal build cost equals vendor seats + per-team vendor maintenance.</span>
+          <span class="tip-box"><strong>Crossover Spectrum:</strong> Shows how far your organization is from the Break-Even Crossover Zone where centralized internal build cost equals vendor seats + ongoing vendor context maintenance.</span>
         </span>
         <span class="gauge-status" id="gaugeStatus">Break-even at ~20 devs</span>
       </div>
@@ -625,19 +614,16 @@
 
     $('devs').addEventListener('input', () => {
       const d = +$('devs').value;
-      const defaultTeams = d === 15 ? 2 : d === 35 ? 5 : d === 60 ? 8 : d === 100 ? 12 : Math.max(1, Math.round(d / 8));
-      $('teams').value = Math.min(65, defaultTeams);
       $('mrs').value = Math.min(1000, Math.max(10, Math.round((d * 12) / 10) * 10));
       calc();
     });
 
-    ['teams', 'mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'].forEach(id => {
+    ['mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'].forEach(id => {
       $(id).addEventListener('input', calc);
     });
 
     function calc() {
       const devs        = +$('devs').value;
-      const teams       = +$('teams').value;
       const mrs         = +$('mrs').value;
       const vendor      = +$('vendor').value;
       const token       = +$('token').value;
@@ -646,8 +632,10 @@
       const vendorMaint = +$('vendorMaint').value;
       const setup       = +$('setup').value;
 
+      // Derive squad count automatically (~7.5–8 devs per team)
+      const teams = devs === 15 ? 2 : devs === 35 ? 5 : devs === 60 ? 8 : devs === 100 ? 12 : Math.max(1, Math.round(devs / 8));
+
       $('vDevs').textContent        = devs;
-      $('vTeams').textContent       = `${teams} ${teams === 1 ? 'team' : 'teams'}`;
       $('vMrs').textContent         = mrs.toLocaleString();
       $('vVendor').textContent      = fmt(vendor);
       $('vToken').textContent       = `$${token.toFixed(2)}`;
@@ -669,15 +657,13 @@
       const buildGross  = buildTokens + buildEng;
       const buildY2Gross = buildTokens + buildMaint;
 
-      // AI Ops Compounding Dividend: 50% of AI Ops engineering investment (setup + maint)
-      // is reusable across other SDLC agents (Slack Q&A, Ticket-to-MR, Release Ops)
+      // AI Ops Compounding Dividend: 50% of AI Ops engineering investment
       const dividendCredit = includeDividend ? Math.round(buildEng * 0.5) : 0;
       const dividendCreditY2 = includeDividend ? Math.round(buildMaint * 0.5) : 0;
       const buildNet = buildGross - dividendCredit;
       const buildY2Net = buildY2Gross - dividendCreditY2;
 
       $('lblDevs').textContent   = devs;
-      $('lblTeams').textContent  = teams;
       $('lblPct').textContent    = vendorMaint;
       $('buyTotal').innerHTML    = `${fmt(buyTotal)} <small>/ yr</small>`;
       $('buyPerDev').textContent = `${fmt(buyTotal / devs)} per dev / yr`;
@@ -696,7 +682,7 @@
 
       // Calculate approximate break-even developer count
       const mrsPerDev = mrs / Math.max(1, devs);
-      const buyPerDevVar = vendor + ((teams / Math.max(1, devs)) * (vendorMaint / 100) * 250 * eng);
+      const buyPerDevVar = vendor + ((1 / 8) * (vendorMaint / 100) * 250 * eng);
       const buildPerDevVar = 12 * mrsPerDev * token;
       const netMarginPerDev = buyPerDevVar - buildPerDevVar;
       const fixedBuildNet = buildEng - dividendCredit;
@@ -738,7 +724,7 @@
         $('boxBuy').classList.add('winner');
       } else if (score > 0.08) {
         vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Net Advantage: ${fmt(buyTotal - buildNet)}/yr)</strong>Across ${teams} teams, ${vendorMaint}% per-team vendor tuning (${fmt(buyMaint)}/yr) + ${fmt(buySeats)} in seats costs far more than centralized internal maintenance${includeDividend ? `—especially once you credit ${fmt(dividendCredit)}/yr in reusable AI Ops infrastructure across your SDLC` : ''}.`;
+        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Net Advantage: ${fmt(buyTotal - buildNet)}/yr)</strong>At ${devs} developers, vendor seats (${fmt(buySeats)}/yr) + ongoing context/skill tuning (${fmt(buyMaint)}/yr) costs far more than centralized internal maintenance${includeDividend ? `—especially once you credit ${fmt(dividendCredit)}/yr in reusable AI Ops infrastructure across your SDLC` : ''}.`;
         $('boxBuild').classList.add('winner');
       } else if (score >= -0.08) {
         vBox.className = 'verdict build';
@@ -746,7 +732,7 @@
         $('boxBuild').classList.add('winner');
       } else {
         vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildNet - buyTotal)}/yr)</strong>At ${devs} developers (${teams} ${teams === 1 ? 'team' : 'teams'}), you are below the ~${breakEvenDevs}-developer crossover threshold—buying is still cheaper than funding ${maint} days/week of internal maintenance.`;
+        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildNet - buyTotal)}/yr)</strong>At ${devs} developers, you are below the ~${breakEvenDevs}-developer crossover threshold—buying is still cheaper than funding ${maint} days/week of internal maintenance.`;
         $('boxBuy').classList.add('winner');
       }
     }
