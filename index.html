@@ -390,6 +390,44 @@
       font-size: 0.9rem;
       margin-bottom: 0.15rem;
     }
+
+    .state-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .state-bar button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.25rem 0.6rem;
+      font: inherit;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .state-bar button:hover { color: var(--text); border-color: var(--muted); }
+
+    .cta-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .cta-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .cta-footer a:hover { text-decoration: underline; }
+    .cta-footer .brand { font-weight: 700; color: var(--text); white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -532,7 +570,7 @@
         <div class="box-sub" id="buildSub">Year 2+: $44,688 / yr</div>
         <div class="breakdown">
           <div class="row"><span>LLM tokens (<span id="totalMrs">720</span> MRs/mo)</span><span id="buildTokens">$14,688</span></div>
-          <div class="row"><span>All-in maint (1.5 d/wk)</span><span id="buildMaint">$30,000</span></div>
+          <div class="row"><span>All-in maint (<span id="lblMaint">1.5</span> d/wk)</span><span id="buildMaint">$30,000</span></div>
           <div class="row"><span>Initial v1 setup</span><span id="buildSetup">$4,800</span></div>
         </div>
       </div>
@@ -562,6 +600,16 @@
     </div>
 
     <div class="verdict" id="verdict"></div>
+
+    <div class="state-bar">
+      <span id="saveStatus">Your inputs are saved in this browser only.</span>
+      <button type="button" id="resetBtn">Reset to defaults</button>
+    </div>
+
+    <footer class="cta-footer">
+      <span>Ready to decide? Get the <a href="https://buymeacoffee.com/agentic.guild/e/589825" target="_blank" rel="noopener">Build-vs-Buy Decision Kit</a> (pilot scorecard, playbook, CTO memo) or <a href="https://buymeacoffee.com/agentic.guild/e/589817" target="_blank" rel="noopener">book a 60-min audit</a>.</span>
+      <span class="brand">Agentic Guild</span>
+    </footer>
   </main>
 
   <script>
@@ -569,8 +617,48 @@
     const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
     let hasCapacity = true;
 
-    $('gateYes').onclick = () => { hasCapacity = true; $('gateYes').className = 'active'; $('gateNo').className = ''; calc(); };
-    $('gateNo').onclick  = () => { hasCapacity = false; $('gateNo').className = 'active'; $('gateYes').className = ''; calc(); };
+    // --- Browser persistence (localStorage) ---------------------------------
+    const STORAGE_KEY = 'aicr-tco-calculator:v1';
+    const FIELDS = ['devs', 'mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'];
+    const DEFAULTS = Object.fromEntries(FIELDS.map(id => [id, $(id).defaultValue]));
+
+    function setGate(value) {
+      hasCapacity = value;
+      $('gateYes').className = value ? 'active' : '';
+      $('gateNo').className  = value ? '' : 'active';
+    }
+
+    function saveState() {
+      try {
+        const state = { hasCapacity };
+        FIELDS.forEach(id => { state[id] = $(id).value; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) { /* storage unavailable (private mode / blocked) — ignore */ }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+        FIELDS.forEach(id => {
+          if (state[id] !== undefined && state[id] !== null) $(id).value = state[id];
+        });
+        if (typeof state.hasCapacity === 'boolean') setGate(state.hasCapacity);
+        return true;
+      } catch (e) { return false; }
+    }
+
+    $('resetBtn').onclick = () => {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+      FIELDS.forEach(id => { $(id).value = DEFAULTS[id]; });
+      setGate(true);
+      calc();
+      $('saveStatus').textContent = 'Reset to defaults.';
+    };
+
+    $('gateYes').onclick = () => { setGate(true); calc(); };
+    $('gateNo').onclick  = () => { setGate(false); calc(); };
 
     $('devs').addEventListener('input', () => {
       const d = +$('devs').value;
@@ -628,6 +716,7 @@
       $('buildSub').textContent    = `Year 2+: ${fmt(buildY2)} / yr`;
       $('buildTokens').textContent = fmt(buildTokens);
       $('buildMaint').textContent  = fmt(buildMaint);
+      $('lblMaint').textContent    = maint;
       $('buildSetup').textContent  = fmt(buildSetup);
 
       // Calculate approximate break-even developer count
@@ -685,8 +774,13 @@
         vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)}/yr in Year 1)</strong>At ${devs} developers, you are below the ~${breakEvenDevs}-developer crossover threshold—buying is cheaper than funding ${maint} days/week of internal maintenance.`;
         $('boxBuy').classList.add('winner');
       }
+
+      saveState();
     }
 
+    if (loadState()) {
+      $('saveStatus').textContent = 'Restored your last inputs (saved in this browser only).';
+    }
     calc();
   </script>
 </body>
