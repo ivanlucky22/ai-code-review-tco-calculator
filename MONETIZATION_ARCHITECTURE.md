@@ -35,7 +35,7 @@ LinkedIn Posts / BMC Articles / GitHub
 
 ### Conversion Triggers Embedded in the App
 1. **The Readiness Gate:** Toggling "No" instantly demonstrates that without 1–2 days/week of AI Ops ownership, internal bots degrade into noise, driving buyers to evaluate vendor options or book an advisory call.
-2. **Dynamic Crossover Math:** Exposes the hidden `~5%` per-team vendor maintenance factor vs. `1–2 days/week` internal maintenance, proving that 35+ dev organizations often save `$20k–$70k/yr` building internally.
+2. **Dynamic Crossover Math:** Exposes the hidden `~5%` ongoing vendor maintenance factor vs. `1–2 days/week` internal maintenance, proving that 35+ dev organizations often save `$20k–$70k/yr` building internally.
 3. **Footer CTAs:** Permanent footer links to the `$89` Decision Kit (`https://buymeacoffee.com/agentic.guild/e/589825`) and `$450` 1-on-1 Audit (`https://buymeacoffee.com/agentic.guild/e/589817`).
 
 ---
