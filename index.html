@@ -1,787 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Code Review: Build vs. Buy Calculator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Compare buyer-entered first-year and ongoing costs for internal AI code review and a vendor option, after checking feasibility." />
+  <title>AI Code Review: Build vs. Buy Cost Calculator</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --accent: #2563eb;
-      --green: #059669;
-      --green-bg: #ecfdf5;
-      --amber: #d97706;
-      --amber-bg: #fffbeb;
-      --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --surface: #fff;
+      --text: #152033;
+      --muted: #526174;
+      --border: #cbd5e1;
+      --accent: #1459a6;
+      --notice: #eff6ff;
+      --warning: #fff7ed;
+      --success: #ecfdf5;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 14px;
-      line-height: 1.5;
-      padding: 1.75rem 1rem;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .calculator {
-      max-width: 650px;
-      margin: 0 auto;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.65rem;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-    }
-
-    h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 0.2rem;
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 0.84rem;
-      margin-bottom: 1.25rem;
-    }
-
-    /* Hover Tooltip */
-    .tip {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      cursor: help;
-    }
-
-    .tip-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      background: #e2e8f0;
-      color: #475569;
-      font-size: 10px;
-      font-weight: 700;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .tip:hover .tip-icon {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .tip-box {
-      visibility: hidden;
-      opacity: 0;
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 0;
-      width: 260px;
-      background: #0f172a;
-      color: #f8fafc;
-      font-size: 0.75rem;
-      font-weight: 400;
-      line-height: 1.45;
-      padding: 0.55rem 0.7rem;
-      border-radius: 7px;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
-      pointer-events: none;
-      transition: opacity 0.15s ease, transform 0.15s ease;
-      transform: translateY(4px);
-      z-index: 30;
-      text-transform: none;
-      letter-spacing: normal;
-    }
-
-    .tip-box::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 16px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: #0f172a transparent transparent transparent;
-    }
-
-    .tip:hover .tip-box {
-      visibility: visible;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Gate Toggle */
-    .option-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.65rem 0.9rem;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 1.25rem;
-      font-size: 0.82rem;
-      font-weight: 500;
-    }
-
-    .toggle {
-      display: inline-flex;
-      background: #e2e8f0;
-      padding: 2px;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-
-    .toggle button {
-      border: none;
-      background: transparent;
-      padding: 0.24rem 0.65rem;
-      border-radius: 5px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .toggle button.active {
-      background: #fff;
-      color: var(--text);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-    }
-
-    /* Inputs grid */
-    .inputs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.9rem 1.25rem;
-      margin-bottom: 0.9rem;
-    }
-
-    @media (max-width: 520px) {
-      .inputs { grid-template-columns: 1fr; }
-    }
-
-    .field label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 0.3rem;
-    }
-
-    .field label > span.val {
-      color: var(--accent);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    details {
-      margin-bottom: 1.25rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    summary {
-      cursor: pointer;
-      user-select: none;
-      font-weight: 500;
-      margin-bottom: 0.75rem;
-    }
-
-    /* Results */
-    .results {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.9rem;
-      margin-bottom: 1rem;
-    }
-
-    @media (max-width: 520px) {
-      .results { grid-template-columns: 1fr; }
-    }
-
-    .box {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem;
-      background: var(--bg);
-    }
-
-    .box.winner {
-      background: #fff;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
-    }
-
-    .box-label {
-      font-size: 0.73rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-      margin-bottom: 0.2rem;
-    }
-
-    .box-price {
-      font-size: 1.6rem;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      line-height: 1.2;
-    }
-
-    .box-price small {
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--muted);
-    }
-
-    .box-sub {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.15rem;
-      margin-bottom: 0.65rem;
-    }
-
-    .breakdown {
-      border-top: 1px solid var(--border);
-      padding-top: 0.55rem;
-      font-size: 0.76rem;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      gap: 0.22rem;
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .row span:last-child {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    /* Visual Crossover Gauge */
-    .gauge-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.9rem 1rem 0.8rem;
-      margin-bottom: 0.9rem;
-      background: #fff;
-    }
-
-    .gauge-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-size: 0.76rem;
-      font-weight: 600;
-      margin-bottom: 0.55rem;
-    }
-
-    .gauge-status {
-      font-variant-numeric: tabular-nums;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .gauge-track {
-      position: relative;
-      height: 14px;
-      border-radius: 999px;
-      background: linear-gradient(90deg,
-        #fde68a 0%,
-        #fde68a 42%,
-        #dbeafe 42%,
-        #dbeafe 58%,
-        #a7f3d0 58%,
-        #6ee7b7 100%
-      );
-      border: 1px solid #cbd5e1;
-      margin: 0.9rem 0 0.45rem;
-    }
-
-    .gauge-center-line {
-      position: absolute;
-      left: 50%;
-      top: -5px;
-      bottom: -5px;
-      width: 2px;
-      background: #475569;
-      opacity: 0.5;
-    }
-
-    .gauge-pin {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--text);
-      border: 3px solid #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-      transition: left 0.2s ease;
-      z-index: 2;
-    }
-
-    .gauge-pin-label {
-      position: absolute;
-      top: -22px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.68rem;
-      font-weight: 700;
-      white-space: nowrap;
-      background: var(--text);
-      color: #fff;
-      padding: 1px 6px;
-      border-radius: 4px;
-    }
-
-    .gauge-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--muted);
-    }
-
-    /* Verdict */
-    .verdict {
-      padding: 0.85rem 1rem;
-      border-radius: 8px;
-      font-size: 0.84rem;
-      background: var(--amber-bg);
-      color: #78350f;
-      border: 1px solid #fde68a;
-    }
-
-    .verdict.build {
-      background: var(--green-bg);
-      color: #064e3b;
-      border-color: #a7f3d0;
-    }
-
-    .verdict strong {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 0.15rem;
-    }
-
-    .state-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 0.85rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .state-bar button {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.25rem 0.6rem;
-      font: inherit;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .state-bar button:hover { color: var(--text); border-color: var(--muted); }
-
-    .cta-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 1rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .cta-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
-    .cta-footer a:hover { text-decoration: underline; }
-    .cta-footer .brand { font-weight: 700; color: var(--text); white-space: nowrap; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 1.5rem 1rem 3rem; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, sans-serif; }
+    main { max-width: 980px; margin: 0 auto; }
+    h1 { font-size: clamp(1.65rem, 4vw, 2.2rem); line-height: 1.2; }
+    h2 { margin-top: 2rem; font-size: 1.35rem; }
+    h3 { margin-top: 0; font-size: 1.1rem; }
+    p, li { max-width: 78ch; }
+    .intro, .note { padding: 1rem 1.15rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
+    .note { margin: 1rem 0; background: var(--notice); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 1rem; }
+    fieldset { min-width: 0; margin: 1rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
+    legend { padding: 0 .35rem; font-weight: 700; }
+    label { display: block; margin: .75rem 0 .25rem; font-weight: 650; }
+    input, select { width: 100%; min-height: 2.7rem; padding: .45rem .6rem; border: 1px solid #64748b; border-radius: .35rem; background: #fff; color: var(--text); font: inherit; }
+    input:focus, select:focus, button:focus, a:focus { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    .help { margin: .15rem 0 .5rem; color: var(--muted); font-size: .9rem; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1rem; }
+    .result-card { padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
+    .total { margin: .15rem 0; font-size: 1.65rem; font-weight: 750; }
+    .line-items { padding: 0; list-style: none; }
+    .line-items li { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem 0; border-top: 1px solid #e2e8f0; }
+    .line-items li span:last-child { font-variant-numeric: tabular-nums; font-weight: 650; }
+    .verdict { margin-top: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--warning); }
+    .verdict.build-lower-cost, .verdict.vendor-lower-cost, .verdict.vendor-only, .verdict.build-only { background: var(--success); }
+    .errors { margin-top: 1rem; padding: 1rem; border: 1px solid #b45309; border-radius: .65rem; background: var(--warning); }
+    button { min-height: 2.7rem; margin-top: 1rem; padding: .5rem .85rem; border: 1px solid #475569; border-radius: .35rem; background: #fff; color: var(--text); font: inherit; cursor: pointer; }
+    .small { color: var(--muted); font-size: .9rem; }
+    [hidden] { display: none !important; }
+    @media (max-width: 480px) { body { padding-inline: .75rem; } fieldset { padding: .75rem; } .line-items li { font-size: .92rem; } }
   </style>
 </head>
 <body>
+  <main>
+    <h1>AI Code Review: Build vs. Buy Cost Calculator</h1>
+    <p class="intro">Estimate first-year and ongoing costs using your team's actual quote, workload, setup, and ownership estimates. This is a scenario calculator, not a market benchmark or a recommendation that applies to every team.</p>
+    <p class="note"><strong>Use feasibility before cost.</strong> Mark whether each option meets your mandatory security, data, governance, and technical requirements. Unknown means “verify first.” Cost cannot make an infeasible option suitable.</p>
+    <p class="small">The companion Build vs. Buy checklist reports about $2 per PR in model tokens from one personal implementation, excluding engineering time. That is context—not a default or benchmark. Enter your own current costs here.</p>
 
-  <main class="calculator">
-    <h1>AI Code Review: Build vs. Buy Calculator</h1>
-    <p class="sub">12-month Total Cost of Ownership (TCO) including engineering maintenance. Hover any <strong>?</strong> for details.</p>
-
-    <div class="option-bar">
-      <div>
-        <span class="tip">
-          Can you dedicate 1–2 days/week (20–40% of 1 person) to own internal review maintenance?
-          <i class="tip-icon">?</i>
-          <span class="tip-box"><strong>AI Ops Readiness Gate:</strong> Building an internal review bot requires a named owner (with backup) spending 1–2 days/week curating rules, suppressing false positives, and evaluating quality. Without a dedicated owner, internal bots decay into ignored noise within 60 days.</span>
-        </span>
-      </div>
-      <div class="toggle">
-        <button type="button" id="gateYes" class="active">Yes</button>
-        <button type="button" id="gateNo">No</button>
-      </div>
-    </div>
-
-    <div class="inputs">
-      <div class="field">
-        <label>
-          <span class="tip">
-            Active Developers
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Active Developers (N_devs):</strong> Number of engineers actively submitting and reviewing PRs/MRs. Drives commercial vendor seat licenses and context maintenance.</span>
-          </span>
-          <span class="val" id="vDevs">60</span>
-        </label>
-        <input type="range" id="devs" min="5" max="500" step="5" value="60" />
-      </div>
-
-      <div class="field">
-        <label>
-          <span class="tip">
-            Vendor Seat Price / Yr
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Annual Vendor Seat Quote (P_vendor):</strong> Commercial AI code review price per developer per year. Standard tiers average ~$400/dev/yr; enterprise quotes typically range from $500 to $700/dev/yr.</span>
-          </span>
-          <span class="val" id="vVendor">$700</span>
-        </label>
-        <input type="range" id="vendor" min="300" max="1000" step="25" value="700" />
+    <form id="calculator" novalidate>
+      <h2>1. Check fit and capacity</h2>
+      <div class="grid">
+        <fieldset>
+          <legend>Vendor option</legend>
+          <label for="vendorFeasibility">Does the vendor option meet all mandatory requirements?</label>
+          <select id="vendorFeasibility" name="vendorFeasibility" required>
+            <option value="">Choose one</option>
+            <option value="yes">Yes — confirmed</option>
+            <option value="no">No — one or more requirements fail</option>
+            <option value="unknown">Unknown — not verified</option>
+          </select>
+          <p class="help">Check the actual plan, deployment, data terms, required controls, review limits, and contract.</p>
+        </fieldset>
+        <fieldset>
+          <legend>Internal option</legend>
+          <label for="internalFeasibility">Can an internal approach meet all mandatory requirements?</label>
+          <select id="internalFeasibility" name="internalFeasibility" required>
+            <option value="">Choose one</option>
+            <option value="yes">Yes — confirmed</option>
+            <option value="no">No — one or more requirements fail</option>
+            <option value="unknown">Unknown — not verified</option>
+          </select>
+          <p class="help">Base this on the architecture, model, hosting, security, and governance requirements you need.</p>
+        </fieldset>
       </div>
 
-      <div class="field">
-        <label>
-          <span class="tip">
-            MRs / PRs per Month
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Monthly Reviews (M_reviews):</strong> Total pull/merge requests reviewed across your organization per month (benchmark: ~10–15 MRs per developer/month). Directly drives internal LLM API &amp; CI runner compute cost.</span>
-          </span>
-          <span class="val" id="vMrs">720</span>
-        </label>
-        <input type="range" id="mrs" min="10" max="1000" step="10" value="720" />
+      <h2>2. Enter your cost assumptions</h2>
+      <p class="small">Enter annual USD amounts and your best supported estimates. All fields are required; enter 0 only when you have confirmed there is no cost or capacity for that item. Engineering effort uses 50 working weeks per year.</p>
+      <div class="grid">
+        <fieldset>
+          <legend>Vendor cost inputs</legend>
+          <label for="vendorLicense">Annual vendor license/seat quote for your team (USD)</label>
+          <input id="vendorLicense" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="vendorOverages">Annual PR overages or usage charges (USD)</label>
+          <input id="vendorOverages" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="vendorSetup">One-time vendor setup/onboarding cost, Year 1 (USD)</label>
+          <input id="vendorSetup" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="vendorOversightDaysPerWeek">Your vendor oversight time (days per week)</label>
+          <input id="vendorOversightDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+          <p class="help">Include your team's ongoing configuration and review time—not work the vendor contract explicitly covers.</p>
+
+          <label for="vendorEvaluationDays">One-time vendor trial and evaluation, Year 1 (engineering days)</label>
+          <input id="vendorEvaluationDays" type="number" min="0" step="any" inputmode="decimal" required />
+        </fieldset>
+
+        <fieldset>
+          <legend>Internal cost inputs</legend>
+          <label for="monthlyReviews">Pull requests reviewed each month</label>
+          <input id="monthlyReviews" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="tokenCostPerReview">Model token cost per PR review (USD)</label>
+          <input id="tokenCostPerReview" type="number" min="0" step="any" inputmode="decimal" required />
+          <p class="help">Token cost only. Do not include hosting here; enter hosting and infrastructure below.</p>
+
+          <label for="internalInfrastructure">Annual internal hosting and infrastructure cost (USD)</label>
+          <input id="internalInfrastructure" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="internalSetupDays">Internal setup, pilot, and evaluation (engineering days)</label>
+          <input id="internalSetupDays" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="internalMaintenanceYearOneDaysPerWeek">Internal maintenance, Year 1 average (days per week)</label>
+          <input id="internalMaintenanceYearOneDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+
+          <label for="internalMaintenanceDaysPerWeek">Internal maintenance once mature (days per week)</label>
+          <input id="internalMaintenanceDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+          <p class="help">Use your own estimates. The checklist author's experience was about 1–2 days/week early on and around 0.5 day/week once mature, so a Year 1 average sits in between; that is not a universal staffing rule.</p>
+        </fieldset>
       </div>
 
-      <div class="field">
-        <label>
-          <span class="tip">
-            Internal Maint (1–2 d/wk)
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>All-In Internal Maintenance (D_maint_build):</strong> Centralized weekly time (1–2 days/week = 20–40% of 1 Senior Engineer) spent curating rules, maintaining context/skills, and reviewing nightly MR reflection across the org.</span>
-          </span>
-          <span class="val" id="vMaint">1.5 days/wk</span>
-        </label>
-        <input type="range" id="maint" min="0.5" max="4" step="0.25" value="1.5" />
-      </div>
-
-      <div class="field">
-        <label>
-          <span class="tip">
-            Token Cost / Review
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Compute Cost per Review (C_token):</strong> Average LLM API token + cloud CI runner compute cost per internal merge request review (~$1.70/review from production benchmark).</span>
-          </span>
-          <span class="val" id="vToken">$1.70</span>
-        </label>
-        <input type="range" id="token" min="0.2" max="5" step="0.1" value="1.70" />
-      </div>
-
-      <div class="field">
-        <label>
-          <span class="tip">
-            Senior Eng Daily Cost
-            <i class="tip-icon">?</i>
-            <span class="tip-box"><strong>Daily Engineering Cost (C_eng_day):</strong> Loaded annual Senior Engineer salary divided by 250 working days (e.g., $100,000/yr = $400/day). Used to price both centralized internal maintenance and vendor context tuning.</span>
-          </span>
-          <span class="val" id="vEng">$400/day</span>
-        </label>
-        <input type="range" id="eng" min="200" max="1000" step="25" value="400" />
-      </div>
-    </div>
-
-    <details>
-      <summary>Setup &amp; vendor maintenance assumptions</summary>
-      <div class="inputs" style="margin-bottom:0;">
-        <div class="field">
-          <label>
-            <span class="tip">
-              Vendor Maintenance %
-              <i class="tip-icon">?</i>
-              <span class="tip-box"><strong>Vendor Context &amp; Skill Maintenance:</strong> Commercial tools are not zero-maintenance—maintaining repo context files, skills, and tuning vendor rules requires ~5% of engineering time across active developers.</span>
-            </span>
-            <span class="val" id="vVendorMaint">5% (~2h/wk)</span>
-          </label>
-          <input type="range" id="vendorMaint" min="0" max="15" step="1" value="5" />
+      <fieldset>
+        <legend>Shared cost and owner capacity</legend>
+        <div class="grid">
+          <div>
+            <label for="engineeringCostPerDay">Fully loaded engineering cost per day (USD)</label>
+            <input id="engineeringCostPerDay" type="number" min="0" step="any" inputmode="decimal" required />
+            <p class="help">Use your local cost estimate. The calculator does not supply a salary or day-rate benchmark.</p>
+          </div>
+          <div>
+            <label for="availableOwnerDaysPerWeek">Owner capacity available for internal work (days per week)</label>
+            <input id="availableOwnerDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+            <p class="help">If this is below either internal maintenance estimate, the internal option is treated as infeasible for this comparison.</p>
+          </div>
         </div>
-        <div class="field">
-          <label>
-            <span class="tip">
-              Initial Build Setup
-              <i class="tip-icon">?</i>
-              <span class="tip-box"><strong>Initial v1 Build &amp; Mining (D_setup):</strong> One-time Year 1 engineering days (10–15 days) to mine 6–12 months of historical merged MRs for defect patterns and deploy the shared cloud CI review agent.</span>
-            </span>
-            <span class="val" id="vSetup">12 days</span>
-          </label>
-          <input type="range" id="setup" min="0" max="30" step="1" value="12" />
-        </div>
-      </div>
-    </details>
+      </fieldset>
 
-    <div class="results">
-      <div class="box" id="boxBuy">
-        <div class="box-label">Buy Vendor Tool</div>
-        <div class="box-price" id="buyTotal">$82,000 <small>/ yr</small></div>
-        <div class="box-sub" id="buyPerDev">$1,367 per dev / yr</div>
-        <div class="breakdown">
-          <div class="row"><span>Seat licenses (<span id="lblDevs">60</span> devs)</span><span id="buySeats">$42,000</span></div>
-          <div class="row"><span>Context &amp; skill maint (<span id="lblPct">5</span>%)</span><span id="buyMaint">$40,000</span></div>
-          <div class="row"><span>Core rule engine</span><span>Vendor</span></div>
-        </div>
-      </div>
+      <button type="button" id="resetBtn">Clear all inputs</button>
+      <p id="saveStatus" class="small" aria-live="polite">Inputs are saved in this browser only.</p>
+    </form>
 
-      <div class="box" id="boxBuild">
-        <div class="box-label">Build Internal Agent</div>
-        <div class="box-price" id="buildTotal">$49,488 <small>/ yr</small></div>
-        <div class="box-sub" id="buildSub">Year 2+: $44,688 / yr</div>
-        <div class="breakdown">
-          <div class="row"><span>LLM tokens (<span id="totalMrs">720</span> MRs/mo)</span><span id="buildTokens">$14,688</span></div>
-          <div class="row"><span>All-in maint (<span id="lblMaint">1.5</span> d/wk)</span><span id="buildMaint">$30,000</span></div>
-          <div class="row"><span>Initial v1 setup</span><span id="buildSetup">$4,800</span></div>
-        </div>
+    <section id="inputErrors" class="errors" aria-live="polite" hidden></section>
+    <section id="results" aria-labelledby="resultsHeading" hidden>
+      <h2 id="resultsHeading">3. Cost estimates</h2>
+      <p class="small">Year 1 includes one-time setup and evaluation and uses Year 1 maintenance. The recurring annual estimate excludes one-time costs and uses mature maintenance. These estimates cover only the line items below; update inputs if your quote or operating scope changes.</p>
+      <div class="results-grid">
+        <article class="result-card">
+          <h3>Vendor option</h3>
+          <p class="small">Year 1 estimate</p>
+          <p id="vendorYearOne" class="total"></p>
+          <p class="small">Recurring annual estimate</p>
+          <p id="vendorOngoing" class="total"></p>
+          <ul class="line-items">
+            <li><span>Annual license/seat quote</span><span id="vendorLicenseCost"></span></li>
+            <li><span>Annual PR overages/usage</span><span id="vendorOveragesCost"></span></li>
+            <li><span>One-time setup</span><span id="vendorSetupCost"></span></li>
+            <li><span>One-time trial/evaluation (Year 1)</span><span id="vendorEvaluationCost"></span></li>
+            <li><span>Annualized customer oversight</span><span id="vendorOversight"></span></li>
+          </ul>
+        </article>
+        <article class="result-card">
+          <h3>Internal option</h3>
+          <p class="small">Year 1 estimate</p>
+          <p id="internalYearOne" class="total"></p>
+          <p class="small">Recurring annual estimate</p>
+          <p id="internalOngoing" class="total"></p>
+          <ul class="line-items">
+            <li><span>Annual model tokens</span><span id="internalTokens"></span></li>
+            <li><span>Annual hosting/infrastructure</span><span id="internalInfrastructureCost"></span></li>
+            <li><span>One-time setup</span><span id="internalSetupCost"></span></li>
+            <li><span>Maintenance, Year 1</span><span id="internalMaintenanceYearOne"></span></li>
+            <li><span>Maintenance, ongoing</span><span id="internalMaintenance"></span></li>
+          </ul>
+        </article>
       </div>
-    </div>
-
-    <!-- Visual Decision Crossover Gauge -->
-    <div class="gauge-card">
-      <div class="gauge-header">
-        <span class="tip">
-          Decision Position vs. Crossover Zone
-          <i class="tip-icon">?</i>
-          <span class="tip-box"><strong>Crossover Spectrum:</strong> Shows how far your organization is from the Break-Even Crossover Zone where centralized internal build cost equals vendor seats + ongoing vendor context maintenance.</span>
-        </span>
-        <span class="gauge-status" id="gaugeStatus">Break-even at ~35 devs</span>
-      </div>
-      <div class="gauge-track">
-        <div class="gauge-center-line" title="Break-Even Crossover Point"></div>
-        <div class="gauge-pin" id="gaugePin" style="left: 75%;">
-          <span class="gauge-pin-label" id="gaugePinLabel">You</span>
-        </div>
-      </div>
-      <div class="gauge-labels">
-        <span style="color:var(--amber);">◀ Buy Zone (Vendor Cheaper)</span>
-        <span id="crossoverLabel">Crossover (~35 devs)</span>
-        <span style="color:var(--green);">Build Zone (Internal Advantage) ▶</span>
-      </div>
-    </div>
-
-    <div class="verdict" id="verdict"></div>
-
-    <div class="state-bar">
-      <span id="saveStatus">Your inputs are saved in this browser only.</span>
-      <button type="button" id="resetBtn">Reset to defaults</button>
-    </div>
-
-    <footer class="cta-footer">
-      <span>Ready to decide? Get the <a href="https://buymeacoffee.com/agentic.guild/e/589825" target="_blank" rel="noopener">Build-vs-Buy Decision Kit</a> (pilot scorecard, playbook, CTO memo) or <a href="https://buymeacoffee.com/agentic.guild/e/589817" target="_blank" rel="noopener">book a 60-min audit</a>.</span>
-      <span class="brand">Agentic Guild</span>
-    </footer>
+      <div id="verdict" class="verdict" aria-live="polite"></div>
+    </section>
   </main>
-
-  <script>
-    const $ = id => document.getElementById(id);
-    const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
-    let hasCapacity = true;
-
-    // --- Browser persistence (localStorage) ---------------------------------
-    const STORAGE_KEY = 'aicr-tco-calculator:v1';
-    const FIELDS = ['devs', 'mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'];
-    const DEFAULTS = Object.fromEntries(FIELDS.map(id => [id, $(id).defaultValue]));
-
-    function setGate(value) {
-      hasCapacity = value;
-      $('gateYes').className = value ? 'active' : '';
-      $('gateNo').className  = value ? '' : 'active';
-    }
-
-    function saveState() {
-      try {
-        const state = { hasCapacity };
-        FIELDS.forEach(id => { state[id] = $(id).value; });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) { /* storage unavailable (private mode / blocked) — ignore */ }
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
-        const state = JSON.parse(raw);
-        FIELDS.forEach(id => {
-          if (state[id] !== undefined && state[id] !== null) $(id).value = state[id];
-        });
-        if (typeof state.hasCapacity === 'boolean') setGate(state.hasCapacity);
-        return true;
-      } catch (e) { return false; }
-    }
-
-    $('resetBtn').onclick = () => {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
-      FIELDS.forEach(id => { $(id).value = DEFAULTS[id]; });
-      setGate(true);
-      calc();
-      $('saveStatus').textContent = 'Reset to defaults.';
-    };
-
-    $('gateYes').onclick = () => { setGate(true); calc(); };
-    $('gateNo').onclick  = () => { setGate(false); calc(); };
-
-    $('devs').addEventListener('input', () => {
-      const d = +$('devs').value;
-      $('mrs').value = Math.min(1000, Math.max(10, Math.round((d * 12) / 10) * 10));
-      calc();
-    });
-
-    ['mrs', 'vendor', 'token', 'eng', 'maint', 'vendorMaint', 'setup'].forEach(id => {
-      $(id).addEventListener('input', calc);
-    });
-
-    function calc() {
-      const devs        = +$('devs').value;
-      const mrs         = +$('mrs').value;
-      const vendor      = +$('vendor').value;
-      const token       = +$('token').value;
-      const eng         = +$('eng').value;
-      const maint       = +$('maint').value;
-      const vendorMaint = +$('vendorMaint').value;
-      const setup       = +$('setup').value;
-
-      // Derive squad count automatically (~7.5–8 devs per team)
-      const teams = devs === 15 ? 2 : devs === 35 ? 5 : devs === 60 ? 8 : devs === 100 ? 12 : Math.max(1, Math.round(devs / 8));
-
-      $('vDevs').textContent        = devs;
-      $('vMrs').textContent         = mrs.toLocaleString();
-      $('vVendor').textContent      = fmt(vendor);
-      $('vToken').textContent       = `$${token.toFixed(2)}`;
-      $('vEng').textContent         = `${fmt(eng)}/day`;
-      $('vMaint').textContent       = `${maint} days/wk`;
-      $('vVendorMaint').textContent = `${vendorMaint}% (~${(vendorMaint * 0.4).toFixed(1).replace('.0','')}h/wk)`;
-      $('vSetup').textContent       = `${setup} days`;
-
-      // Buy Cost
-      const buySeats = devs * vendor;
-      const buyMaint = teams * (vendorMaint / 100) * 250 * eng;
-      const buyTotal = buySeats + buyMaint;
-
-      // Build Cost
-      const buildTokens = 12 * mrs * token;
-      const buildMaint  = 50 * maint * eng;
-      const buildSetup  = setup * eng;
-      const buildTotal  = buildTokens + buildMaint + buildSetup;
-      const buildY2     = buildTokens + buildMaint;
-
-      $('lblDevs').textContent   = devs;
-      $('lblPct').textContent    = vendorMaint;
-      $('buyTotal').innerHTML    = `${fmt(buyTotal)} <small>/ yr</small>`;
-      $('buyPerDev').textContent = `${fmt(buyTotal / devs)} per dev / yr`;
-      $('buySeats').textContent  = fmt(buySeats);
-      $('buyMaint').textContent  = fmt(buyMaint);
-
-      $('totalMrs').textContent    = mrs.toLocaleString();
-      $('buildTotal').innerHTML    = `${fmt(buildTotal)} <small>/ yr</small>`;
-      $('buildSub').textContent    = `Year 2+: ${fmt(buildY2)} / yr`;
-      $('buildTokens').textContent = fmt(buildTokens);
-      $('buildMaint').textContent  = fmt(buildMaint);
-      $('lblMaint').textContent    = maint;
-      $('buildSetup').textContent  = fmt(buildSetup);
-
-      // Calculate approximate break-even developer count
-      const mrsPerDev = mrs / Math.max(1, devs);
-      const buyPerDevVar = vendor + ((1 / 8) * (vendorMaint / 100) * 250 * eng);
-      const buildPerDevVar = 12 * mrsPerDev * token;
-      const netMarginPerDev = buyPerDevVar - buildPerDevVar;
-      const fixedBuild = buildMaint + buildSetup;
-      const breakEvenDevs = netMarginPerDev > 0 ? Math.max(5, Math.round(fixedBuild / netMarginPerDev)) : 500;
-
-      // Update Visual Gauge Position (50% = Crossover break-even where buildTotal == buyTotal)
-      let score = 0;
-      if (!hasCapacity) {
-        score = -0.85;
-      } else {
-        const diff = buyTotal - buildTotal;
-        const base = Math.max(1, (buyTotal + buildTotal) / 2);
-        score = Math.max(-0.92, Math.min(0.92, diff / base));
-      }
-      const pctPos = 50 + (score * 46);
-      $('gaugePin').style.left = `${pctPos.toFixed(1)}%`;
-      $('gaugePinLabel').textContent = !hasCapacity ? 'No Owner → Buy' : `${devs} devs`;
-      $('crossoverLabel').textContent = `Crossover (~${breakEvenDevs} devs)`;
-
-      const delta = Math.abs(buyTotal - buildTotal);
-      const pctDiff = Math.round((delta / Math.max(1, buyTotal)) * 100);
-      if (!hasCapacity) {
-        $('gaugeStatus').textContent = 'Locked to Buy (No 1–2 d/wk owner)';
-      } else if (Math.abs(score) <= 0.08) {
-        $('gaugeStatus').textContent = `Right on the Crossover Edge (~${breakEvenDevs} devs)`;
-      } else if (score > 0) {
-        $('gaugeStatus').textContent = `+${devs - breakEvenDevs} devs past Crossover (${pctDiff}% cheaper to Build)`;
-      } else {
-        $('gaugeStatus').textContent = `${Math.max(1, breakEvenDevs - devs)} devs below Crossover (${fmt(delta)} cheaper to Buy)`;
-      }
-
-      const vBox = $('verdict');
-      $('boxBuy').classList.remove('winner');
-      $('boxBuild').classList.remove('winner');
-
-      if (!hasCapacity) {
-        vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool</strong>Without 1–2 days/week (20–40% of 1 person) to own internal rule maintenance, an internal review agent degrades into noise. Default to Buying.`;
-        $('boxBuy').classList.add('winner');
-      } else if (score > 0.08) {
-        vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Build Internal Agent (Saves ${fmt(buyTotal - buildTotal)} Yr 1 / ${fmt(buyTotal - buildY2)} Yr 2+)</strong>At ${devs} developers, vendor seats (${fmt(buySeats)}/yr) + ongoing context/skill tuning (${fmt(buyMaint)}/yr) costs far more than centralized internal maintenance (${fmt(buildMaint)}/yr).`;
-        $('boxBuild').classList.add('winner');
-      } else if (score >= -0.08) {
-        vBox.className = 'verdict build';
-        vBox.innerHTML = `<strong>Recommendation: Crossover Zone (~Break-Even at ${devs} Devs)</strong>You are right on the decision edge (${fmt(buyTotal)} Buy vs. ${fmt(buildTotal)} Build). Choose Build to own internal AI capability; choose Buy if you want zero platform responsibility.`;
-        $('boxBuild').classList.add('winner');
-      } else {
-        vBox.className = 'verdict';
-        vBox.innerHTML = `<strong>Recommendation: Buy Vendor Tool (Saves ${fmt(buildTotal - buyTotal)}/yr in Year 1)</strong>At ${devs} developers, you are below the ~${breakEvenDevs}-developer crossover threshold—buying is cheaper than funding ${maint} days/week of internal maintenance.`;
-        $('boxBuy').classList.add('winner');
-      }
-
-      saveState();
-    }
-
-    if (loadState()) {
-      $('saveStatus').textContent = 'Restored your last inputs (saved in this browser only).';
-    }
-    calc();
-  </script>
+  <script src="calculator-core.js"></script>
+  <script src="calculator.js"></script>
 </body>
 </html>

@@ -1,27 +1,44 @@
-# AI Code Review Build-vs-Buy TCO Calculator
+# AI Code Review: Build vs. Buy Cost Calculator
 
-Interactive 12-month Total Cost of Ownership (TCO) calculator comparing **Commercial AI Code Review Vendor Seat Licenses (`$400–$700/dev/yr`)** against **Internal Cloud CI Agent Token Compute (`~$1.70/MR`) + Ongoing AI Ops Maintenance (`1–2 days/week` Senior Engineer capacity)**.
+A static, browser-based calculator for comparing buyer-entered first-year and recurring cost estimates for an internal AI code-review approach and a commercial vendor option.
 
-## What It Models
+## What it does
 
-1. **Step 1 — AI Ops & Infrastructure Readiness Gate (Pass/Fail)**
-   - Evaluates organizational readiness across the 4-stage AI Ops Ownership Maturity Scale and backup ownership requirements.
-2. **Step 2 — Team Size & Cost Baseline Parameters**
-   - `N_devs` (Active developers, with `15`, `35`, `60`, and `100` dev scenario presets)
-   - `M_reviews` (Monthly PRs/MRs reviewed across the org)
-   - `C_token` (Average LLM + CI compute cost per internal review, benchmark `~$1.70/review`)
-   - `C_eng_day` (Daily Senior Engineer cost = Annual Salary ÷ 250 working days)
-   - `D_maint` (Weekly rule maintenance, false-positive suppression & quality evaluation days)
-   - `D_setup` (Initial v1 Cloud CI Agent build + historical MR pattern mining days)
-   - `P_vendor_std` & `P_vendor_ent` (Standard `$400/yr` vs. Enterprise `$700/yr` vendor quotes)
-3. **Step 3 & 4 — 12-Month TCO Breakdown, Crossover Curve & Scenario Matrix**
-   - Compares **Option A (Vendor Standard)**, **Option B (Vendor Enterprise)**, and **Option C (Internal Build Year 1 & Year 2+)**.
-   - Plots the live TCO crossover curve from `10` to `140+` developers and exports a 1-click Markdown summary or shareable URL with query parameters.
+- Checks whether each option is marked as meeting the buyer's hard requirements before showing a cost-based result.
+- Requires the buyer to enter current vendor pricing, review overages, setup, oversight, internal token cost, infrastructure, engineering effort, and owner capacity.
+- Separates one-time setup from recurring annual costs and uses 50 working weeks to annualize weekly engineering effort.
+- Reports when an option is marked infeasible, when requirements remain unknown, or when neither option is currently feasible; cost does not override those constraints.
+- Stores inputs in the current browser's local storage. The page contains no analytics or code that submits the entered values to a server.
 
-## Running Locally
+The companion checklist reports an owner-observed cost of about $2 per pull request in model tokens, excluding engineering time and infrastructure. That is one person's experience, not a benchmark or a default for this calculator. Use your own current data and quote. The estimates are scenario-specific and are not guarantees or substitutes for security, legal, or procurement review.
 
-Open `index.html` directly in any browser or serve locally:
+## Cost scope
+
+- **Vendor Year 1:** annual license/seat quote for the buyer's scope + annual overages/usage charges + one-time setup + one-time trial/evaluation engineering + annualized customer oversight.
+- **Vendor recurring annual estimate:** annual license/seat quote for the buyer's scope + annual overages/usage charges + annualized customer oversight.
+- **Internal Year 1:** annual model-token use + annual hosting/infrastructure + one-time setup, pilot, and evaluation engineering + Year 1 average maintenance effort.
+- **Internal recurring annual estimate:** annual model-token use + annual hosting/infrastructure + mature maintenance effort.
+
+Owner capacity is checked against the larger of the two maintenance estimates. When Year 1 and recurring comparisons favor different options, the result says so.
+
+All rates and amounts are buyer inputs. Engineering time is annualized using 50 working weeks; enter 0 only if you have confirmed the cost or capacity is zero. Any omitted cost remains outside the estimate.
+
+## Run and test locally
+
+Open `index.html` in a modern browser, or run a local static server:
 
 ```bash
 python3 -m http.server 8080
 ```
+
+Then open `http://localhost:8080/`.
+
+Run the calculation and feasibility tests with Node.js:
+
+```bash
+node --test calculator-core.test.js
+node --check calculator-core.js
+node --check calculator.js
+```
+
+No build step or third-party runtime dependency is required.
