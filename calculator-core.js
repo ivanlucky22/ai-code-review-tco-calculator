@@ -14,6 +14,7 @@
     'vendorEvaluationDays',
     'monthlyReviews',
     'tokenCostPerReview',
+    'reviewRunsPerPR',
     'internalInfrastructure',
     'internalSetupDays',
     'internalMaintenanceYearOneDaysPerWeek',
@@ -21,6 +22,7 @@
     'engineeringCostPerDay',
     'availableOwnerDaysPerWeek',
   ];
+  const OPTIONAL_NUMBERS = ['firstYearBudget'];
 
   function validate(input) {
     const errors = [];
@@ -31,19 +33,28 @@
       vendorOversightDaysPerWeek: 'Vendor oversight time in days per week',
       vendorEvaluationDays: 'One-time vendor trial and evaluation engineering days',
       monthlyReviews: 'Pull requests reviewed each month',
-      tokenCostPerReview: 'Model token cost per PR review',
+      tokenCostPerReview: 'Model token cost per review run',
+      reviewRunsPerPR: 'Average review runs per PR',
       internalInfrastructure: 'Annual internal hosting and infrastructure cost',
       internalSetupDays: 'Internal setup, pilot, and evaluation days',
       internalMaintenanceYearOneDaysPerWeek: 'Year 1 average internal maintenance days per week',
       internalMaintenanceDaysPerWeek: 'Ongoing (mature) internal maintenance days per week',
       engineeringCostPerDay: 'Fully loaded engineering cost per day',
       availableOwnerDaysPerWeek: 'Owner capacity available in days per week',
+      firstYearBudget: 'First-year budget',
     };
     for (const field of REQUIRED_NUMBERS) {
       const value = input[field];
       if (value === '' || value === null || value === undefined) {
         errors.push(`${labels[field]} is required`);
       } else if (!Number.isFinite(Number(value)) || Number(value) < 0) {
+        errors.push(`${labels[field]} must be a non-negative number`);
+      }
+    }
+    for (const field of OPTIONAL_NUMBERS) {
+      const value = input[field];
+      if (value === '' || value === null || value === undefined) continue;
+      if (!Number.isFinite(Number(value)) || Number(value) < 0) {
         errors.push(`${labels[field]} must be a non-negative number`);
       }
     }
@@ -67,7 +78,8 @@
     const vendorEvaluation = n.vendorEvaluationDays * n.engineeringCostPerDay;
     const vendorYearOne = vendorOngoing + n.vendorSetup + vendorEvaluation;
 
-    const internalTokens = n.monthlyReviews * 12 * n.tokenCostPerReview;
+    const tokenCostPerPR = n.tokenCostPerReview * n.reviewRunsPerPR;
+    const internalTokens = n.monthlyReviews * 12 * tokenCostPerPR;
     const internalMaintenance = n.internalMaintenanceDaysPerWeek * WORKING_WEEKS_PER_YEAR * n.engineeringCostPerDay;
     const internalMaintenanceYearOne = n.internalMaintenanceYearOneDaysPerWeek * WORKING_WEEKS_PER_YEAR * n.engineeringCostPerDay;
     const internalSetup = n.internalSetupDays * n.engineeringCostPerDay;
@@ -109,16 +121,44 @@
       }
     }
 
+    let budgetNote = '';
+    const rawBudget = input.firstYearBudget;
+    const hasBudget = rawBudget !== '' && rawBudget !== null && rawBudget !== undefined;
+    if (hasBudget && vendorState !== 'unknown' && internalState !== 'unknown') {
+      const budget = Number(rawBudget);
+      const vendorFits = vendorState === 'yes' && vendorYearOne <= budget;
+      const internalFits = internalState === 'yes' && internalYearOne <= budget;
+      if (vendorState === 'yes' && internalState === 'yes') {
+        if (vendorFits && internalFits) {
+          budgetNote = 'Both feasible options fit within your first-year budget.';
+        } else if (vendorFits) {
+          budgetNote = 'Only the vendor Year 1 estimate fits within your first-year budget.';
+        } else if (internalFits) {
+          budgetNote = 'Only the internal Year 1 estimate fits within your first-year budget.';
+        } else {
+          budgetNote = 'Neither feasible option fits within your first-year budget; consider a scoped trial or deferring.';
+        }
+      } else if (vendorState === 'yes') {
+        budgetNote = vendorFits
+          ? 'The vendor Year 1 estimate fits within your first-year budget.'
+          : 'The vendor Year 1 estimate exceeds your first-year budget; consider a scoped trial or deferring.';
+      } else if (internalState === 'yes') {
+        budgetNote = internalFits
+          ? 'The internal Year 1 estimate fits within your first-year budget.'
+          : 'The internal Year 1 estimate exceeds your first-year budget; consider a scoped pilot or deferring.';
+      }
+    }
+
     return {
       errors: [],
       costs: {
         vendor: { license: vendorLicense, overages: n.vendorOverages, setup: n.vendorSetup, evaluation: vendorEvaluation, oversight: vendorOversight, yearOne: vendorYearOne, ongoing: vendorOngoing },
-        internal: { tokens: internalTokens, infrastructure: n.internalInfrastructure, setup: internalSetup, maintenanceYearOne: internalMaintenanceYearOne, maintenance: internalMaintenance, yearOne: internalYearOne, ongoing: internalOngoing },
+        internal: { tokenCostPerPR, tokens: internalTokens, infrastructure: n.internalInfrastructure, setup: internalSetup, maintenanceYearOne: internalMaintenanceYearOne, maintenance: internalMaintenance, yearOne: internalYearOne, ongoing: internalOngoing },
         workWeeksPerYear: WORKING_WEEKS_PER_YEAR,
       },
-      decision: { ...decision, vendorFeasibility: vendorState, internalFeasibility: internalState, capacityNote, ongoingNote },
+      decision: { ...decision, vendorFeasibility: vendorState, internalFeasibility: internalState, capacityNote, ongoingNote, budgetNote },
     };
   }
 
-  return { WORKING_WEEKS_PER_YEAR, REQUIRED_NUMBERS, validate, estimate };
+  return { WORKING_WEEKS_PER_YEAR, REQUIRED_NUMBERS, OPTIONAL_NUMBERS, validate, estimate };
 });

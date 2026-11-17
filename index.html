@@ -54,7 +54,7 @@
     <h1>AI Code Review: Build vs. Buy Cost Calculator</h1>
     <p class="intro">Estimate first-year and ongoing costs using your team's actual quote, workload, setup, and ownership estimates. This is a scenario calculator, not a market benchmark or a recommendation that applies to every team.</p>
     <p class="note"><strong>Use feasibility before cost.</strong> Mark whether each option meets your mandatory security, data, governance, and technical requirements. Unknown means “verify first.” Cost cannot make an infeasible option suitable.</p>
-    <p class="small">The companion Build vs. Buy checklist reports about $2 per PR in model tokens from one personal implementation, excluding engineering time. That is context—not a default or benchmark. Enter your own current costs here.</p>
+    <p class="small">The companion Build vs. Buy checklist reports about $2 per review run on frontier models (roughly $4 per PR at ~2 review runs per PR) in model tokens from one personal implementation, excluding engineering time and infrastructure. That is context—not a default or benchmark. Enter your own current costs here.</p>
 
     <form id="calculator" novalidate>
       <h2>1. Check fit and capacity</h2>
@@ -110,9 +110,13 @@
           <label for="monthlyReviews">Pull requests reviewed each month</label>
           <input id="monthlyReviews" type="number" min="0" step="any" inputmode="decimal" required />
 
-          <label for="tokenCostPerReview">Model token cost per PR review (USD)</label>
+          <label for="tokenCostPerReview">Model token cost per review run (USD)</label>
           <input id="tokenCostPerReview" type="number" min="0" step="any" inputmode="decimal" required />
-          <p class="help">Token cost only. Do not include hosting here; enter hosting and infrastructure below.</p>
+          <p class="help">Token cost for a single review run only. Do not include hosting here; enter hosting and infrastructure below.</p>
+
+          <label for="reviewRunsPerPR">Average review runs per PR</label>
+          <input id="reviewRunsPerPR" type="number" min="0" step="any" inputmode="decimal" required />
+          <p class="help">Token cost per PR = token cost per review run &times; review runs per PR. If you already know your total token cost per PR, enter it above and enter 1 here.</p>
 
           <label for="internalInfrastructure">Annual internal hosting and infrastructure cost (USD)</label>
           <input id="internalInfrastructure" type="number" min="0" step="any" inputmode="decimal" required />
@@ -141,6 +145,11 @@
             <label for="availableOwnerDaysPerWeek">Owner capacity available for internal work (days per week)</label>
             <input id="availableOwnerDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
             <p class="help">If this is below either internal maintenance estimate, the internal option is treated as infeasible for this comparison.</p>
+          </div>
+          <div>
+            <label for="firstYearBudget">First-year budget (USD, optional)</label>
+            <input id="firstYearBudget" type="number" min="0" step="any" inputmode="decimal" />
+            <p class="help">Optional. If entered, the summary checks whether feasible Year 1 estimates fit within your budget.</p>
           </div>
         </div>
       </fieldset>
@@ -175,6 +184,7 @@
           <p class="small">Recurring annual estimate</p>
           <p id="internalOngoing" class="total"></p>
           <ul class="line-items">
+            <li><span>Estimated token cost per PR</span><span id="internalTokenCostPerPR"></span></li>
             <li><span>Annual model tokens</span><span id="internalTokens"></span></li>
             <li><span>Annual hosting/infrastructure</span><span id="internalInfrastructureCost"></span></li>
             <li><span>One-time setup</span><span id="internalSetupCost"></span></li>

@@ -2,11 +2,12 @@
 
 (() => {
   const STORAGE_KEY = 'aicr-tco-calculator:inputs';
-  const numberFields = [...window.CalculatorCore.REQUIRED_NUMBERS];
+  const numberFields = [...window.CalculatorCore.REQUIRED_NUMBERS, ...window.CalculatorCore.OPTIONAL_NUMBERS];
   const selectFields = ['vendorFeasibility', 'internalFeasibility'];
   const allFields = [...numberFields, ...selectFields];
   const $ = (id) => document.getElementById(id);
   const money = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+  const moneyPrecise = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
 
   function readInput() {
     return Object.fromEntries(allFields.map((id) => [id, $(id).value]));
@@ -70,6 +71,7 @@
     $('vendorOversight').textContent = money(vendor.oversight);
     $('internalYearOne').textContent = money(internal.yearOne);
     $('internalOngoing').textContent = money(internal.ongoing);
+    $('internalTokenCostPerPR').textContent = moneyPrecise(internal.tokenCostPerPR);
     $('internalTokens').textContent = money(internal.tokens);
     $('internalInfrastructureCost').textContent = money(internal.infrastructure);
     $('internalSetupCost').textContent = money(internal.setup);
@@ -84,7 +86,7 @@
     const message = document.createElement('p');
     message.textContent = result.decision.message;
     verdict.append(heading, message);
-    for (const text of [result.decision.capacityNote, result.decision.ongoingNote]) {
+    for (const text of [result.decision.capacityNote, result.decision.ongoingNote, result.decision.budgetNote]) {
       if (!text) continue;
       const note = document.createElement('p');
       note.textContent = text;
