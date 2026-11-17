@@ -310,7 +310,7 @@
       <p class="subtitle">Adjust your team size, vendor seat price, PR volume, and engineering rate to compare Year 1 and recurring costs.</p>
       <details class="context">
         <summary>Assumptions &amp; methodology</summary>
-        <p>Compares Year 1 and recurring costs assuming both Buy and Build meet your security, data-handling, and integration requirements. Uses 50 working weeks (250 working days) per year; enter 0 only when confirmed zero. As an illustrative reference (not an industry benchmark), one real-world CI setup saw about $2 per review run on frontier models (~$4 per PR at ~2 runs, rough estimate, not measured), with 1–2 days/week maintenance early on and ~0.5 day/week once mature.</p>
+        <p>Compares Year 1 and recurring costs assuming both Buy and Build meet your security, data-handling, and integration requirements. Uses 50 working weeks (250 working days) per year; enter 0 only when confirmed zero. As an illustrative reference (not an industry benchmark), one real-world CI setup saw about $2 per review run on frontier models (~$4 per PR at ~2 runs, rough estimate, not measured), with 1–2 days/week maintenance in the first 2 months and ~0.5 day/week after that.</p>
       </details>
     </header>
 
@@ -537,7 +537,7 @@
                   <label for="internalMaintenanceYearOneDaysPerWeek">Year 1 upkeep (days/wk)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Year 1 upkeep">?</button>
-                    <span class="hint" role="tooltip">Average weekly Year 1 maintenance: prompt tuning, log review, and fixing false positives (typically heavier early on).</span>
+                    <span class="hint" role="tooltip">Average weekly Year 1 maintenance: prompt tuning, log review, and fixing false positives (typically heavier in the first 2 months).</span>
                   </span>
                 </div>
                 <input id="internalMaintenanceYearOneDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
