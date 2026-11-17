@@ -7,22 +7,22 @@
     year: { max: 400000, step: 5000 },
   };
   const EXAMPLE_DEFAULTS = {
-    developerCount: '100',
-    vendorSeatCostPerDevYear: '600',
+    developerCount: '50',
+    vendorSeatCostPerDevYear: '500',
     monthlyReviews: '100',
     engineeringCost: '100000',
     engineeringCostUnit: 'year',
     vendorOverages: '0',
     vendorSetup: '0',
     vendorOversightDaysPerWeek: '0.1',
-    vendorEvaluationDays: '2',
+    vendorEvaluationDays: '5',
     tokenCostPerReview: '2',
     reviewRunsPerPR: '2',
     internalInfrastructure: '600',
     internalSetupDays: '5',
     internalMaintenanceYearOneDaysPerWeek: '1',
     internalMaintenanceDaysPerWeek: '0.5',
-    availableOwnerDaysPerWeek: '1.5',
+    availableOwnerDaysPerWeek: '3',
     firstYearBudget: '',
   };
 
@@ -241,7 +241,7 @@
       zoneBox.hidden = false;
       $('zoneMarker').style.left = `${zone.positionPct}%`;
       zoneSummaryLabel = zone.lean === 'close'
-        ? `Close call (±10%)`
+        ? `Crossover Zone (±10%)`
         : zone.lean === 'buy'
           ? `Buy zone (${zone.relDiffPct}% lower Year 1)`
           : `Build zone (${zone.relDiffPct}% lower Year 1)`;

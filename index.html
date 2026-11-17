@@ -220,18 +220,18 @@
     .zone-track {
       position: relative;
       display: grid;
-      grid-template-columns: 4fr 2fr 4fr;
-      height: .75rem;
+      grid-template-columns: 3.5fr 3fr 3.5fr;
+      height: .8rem;
       border-radius: 999px;
       overflow: visible;
       border: 1px solid var(--border-strong);
     }
     .zone-seg.buy { background: #dbeafe; border-radius: 999px 0 0 999px; }
-    .zone-seg.close { background: #e2e8f0; }
+    .zone-seg.close { background: #fde68a; }
     .zone-seg.build { background: #e0e7ff; border-radius: 0 999px 999px 0; }
     .zone-labels {
       display: grid;
-      grid-template-columns: 4fr 2fr 4fr;
+      grid-template-columns: 3.5fr 3fr 3.5fr;
       margin-top: .35rem;
       font-size: .8rem;
       font-weight: 600;
@@ -309,8 +309,8 @@
       <h1>AI Code Review: Build vs. Buy Calculator</h1>
       <p class="subtitle">Adjust your team size, vendor seat price, PR volume, and engineering rate to compare Year 1 and recurring costs.</p>
       <details class="context">
-        <summary>Notes &amp; checklist reference</summary>
-        <p>Uses 50 working weeks (250 working days) per year; enter 0 when confirmed zero. In the companion Build vs. Buy checklist, one personal CI implementation saw about $2 per review run on frontier models (roughly $4 per PR at ~2 runs, rough estimate, not measured), with 1–2 days/week maintenance early on and ~0.5 day/week once mature.</p>
+        <summary>Assumptions &amp; methodology</summary>
+        <p>Compares Year 1 and recurring costs assuming both Buy and Build meet your security, data-handling, and integration requirements. Uses 50 working weeks (250 working days) per year; enter 0 only when confirmed zero. As an illustrative reference (not an industry benchmark), one real-world CI setup saw about $2 per review run on frontier models (~$4 per PR at ~2 runs, rough estimate, not measured), with 1–2 days/week maintenance early on and ~0.5 day/week once mature.</p>
       </details>
     </header>
 
@@ -331,7 +331,7 @@
           </div>
           <div class="zone-labels" aria-hidden="true">
             <span>Buy zone</span>
-            <span>Close (&plusmn;10%)</span>
+            <span>Crossover Zone (&plusmn;10%)</span>
             <span>Build zone</span>
           </div>
         </div>
@@ -397,7 +397,7 @@
                   <label for="developerCount">Developers</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Developers">?</button>
-                    <span class="hint" role="tooltip">Active developers in scope; multiplied by vendor seat price (checklist Q2).</span>
+                    <span class="hint" role="tooltip">Active developers in scope; multiplied by the annual vendor seat price.</span>
                   </span>
                 </div>
                 <input id="developerCount" type="number" min="1" step="1" inputmode="numeric" required />
@@ -410,7 +410,7 @@
                   <label for="vendorSeatCostPerDevYear">Vendor seat ($ / dev / yr)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Vendor seat">?</button>
-                    <span class="hint" role="tooltip">Quoted annual seat price per dev. Example $600 fits $500–700 enterprise quotes; public list plans &approx; $180–360 (2026 rough reference).</span>
+                    <span class="hint" role="tooltip">Quoted annual seat price per dev. Example $500 fits $500–700 enterprise quotes; public list plans &approx; $180–360 (2026 rough reference).</span>
                   </span>
                 </div>
                 <input id="vendorSeatCostPerDevYear" type="number" min="0" step="any" inputmode="decimal" required />
@@ -425,7 +425,7 @@
                   <label for="monthlyReviews">Pull requests / month (team total)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Pull requests per month">?</button>
-                    <span class="hint" role="tooltip">Total monthly PRs across all developers (not per dev). Checklist example: ~10 PRs/dev/mo; drives Build token cost.</span>
+                    <span class="hint" role="tooltip">Total monthly PRs across all developers (not per dev). Drives Build model token cost.</span>
                   </span>
                 </div>
                 <input id="monthlyReviews" type="number" min="0" step="any" inputmode="decimal" required />
@@ -438,7 +438,7 @@
                   <label for="engineeringCost">Fully loaded engineering cost</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Fully loaded engineering cost">?</button>
-                    <span class="hint" role="tooltip">Salary + overhead used to value setup, trial, and upkeep time (checklist Q2: 50 working weeks / 250 days per year).</span>
+                    <span class="hint" role="tooltip">Salary + overhead used to value setup, trial, and upkeep time (250 working days / 50 weeks per year).</span>
                   </span>
                 </div>
                 <div class="input-pair">
@@ -468,7 +468,7 @@
                   <label for="vendorOversightDaysPerWeek">Vendor oversight (days/wk)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Vendor oversight">?</button>
-                    <span class="hint" role="tooltip">Checklist Q1–Q2: ongoing weekly admin, custom rule tuning, and vendor follow-up (&times; 50 wks/yr).</span>
+                    <span class="hint" role="tooltip">Ongoing weekly admin, custom rule tuning, and vendor follow-up (&times; 50 weeks/year).</span>
                   </span>
                 </div>
                 <input id="vendorOversightDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
@@ -481,7 +481,7 @@
                   <label for="vendorOverages">Annual PR overages ($)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Annual PR overages">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2 &amp; plan limits: extra charges when PRs exceed plan caps (extra PRs may be skipped or billed). Use $0 only if confirmed.</span>
+                    <span class="hint" role="tooltip">Extra annual charges if PR volume exceeds plan caps (extra PRs may be skipped or billed). Use $0 only if confirmed.</span>
                   </span>
                 </div>
                 <input id="vendorOverages" type="number" min="0" step="any" inputmode="decimal" required />
@@ -494,7 +494,7 @@
                   <label for="vendorEvaluationDays">Trial &amp; evaluation (eng. days)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Trial and evaluation">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2–Q3: Year 1 engineering days to run a vendor trial and score comment usefulness (U1/U2/N1/N2).</span>
+                    <span class="hint" role="tooltip">Year 1 engineering days to run a vendor trial and evaluate comment quality before committing.</span>
                   </span>
                 </div>
                 <input id="vendorEvaluationDays" type="number" min="0" step="any" inputmode="decimal" required />
@@ -507,7 +507,7 @@
                   <label for="vendorSetup">One-time setup ($, Year 1)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain One-time setup">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: one-time onboarding, integration, or contract setup fees in Year 1. Use $0 only if confirmed.</span>
+                    <span class="hint" role="tooltip">One-time onboarding, integration, or contract setup fees in Year 1. Use $0 only if confirmed.</span>
                   </span>
                 </div>
                 <input id="vendorSetup" type="number" min="0" step="any" inputmode="decimal" required />
@@ -524,7 +524,7 @@
                   <label for="availableOwnerDaysPerWeek">Owner capacity (days/wk)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Owner capacity">?</button>
-                    <span class="hint" role="tooltip">Checklist Q1: weekly time an owner (+ backup) can spare. Must cover peak upkeep or Build is excluded.</span>
+                    <span class="hint" role="tooltip">Weekly engineering time an owner (plus backup) can spare. Must cover peak upkeep or internal build is excluded.</span>
                   </span>
                 </div>
                 <input id="availableOwnerDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
@@ -537,7 +537,7 @@
                   <label for="internalMaintenanceYearOneDaysPerWeek">Year 1 upkeep (days/wk)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Year 1 upkeep">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: average weekly Year 1 maintenance (prompt tuning, log review, false positives; 1–2 days/wk early on in personal CI experience).</span>
+                    <span class="hint" role="tooltip">Average weekly Year 1 maintenance: prompt tuning, log review, and fixing false positives (typically heavier early on).</span>
                   </span>
                 </div>
                 <input id="internalMaintenanceYearOneDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
@@ -550,7 +550,7 @@
                   <label for="internalMaintenanceDaysPerWeek">Mature upkeep (days/wk)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Mature upkeep">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: typical weekly maintenance once settled (~0.5 day/wk in personal CI experience).</span>
+                    <span class="hint" role="tooltip">Typical weekly maintenance once the review agent has settled (e.g., ~0.5 day/week).</span>
                   </span>
                 </div>
                 <input id="internalMaintenanceDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
@@ -563,7 +563,7 @@
                   <label for="tokenCostPerReview">Token cost / run ($)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Token cost per run">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: LLM token cost per review run (~$2/run on frontier models in personal CI experience; lower-cost models not measured in CI).</span>
+                    <span class="hint" role="tooltip">LLM token cost per single review run (~$2/run on frontier models in one CI setup; lower-cost models may reduce this).</span>
                   </span>
                 </div>
                 <input id="tokenCostPerReview" type="number" min="0" step="any" inputmode="decimal" required />
@@ -576,7 +576,7 @@
                   <label for="reviewRunsPerPR">Review runs / PR</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Review runs per PR">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: average review runs triggered per PR (~2 runs/PR rough estimate, not measured &rarr; ~$4/PR at $2/run).</span>
+                    <span class="hint" role="tooltip">Average review runs triggered per PR (rough estimate ~2 runs/PR &rarr; ~$4/PR at $2/run).</span>
                   </span>
                 </div>
                 <input id="reviewRunsPerPR" type="number" min="0" step="any" inputmode="decimal" required />
@@ -589,7 +589,7 @@
                   <label for="internalSetupDays">Setup &amp; pilot (eng. days)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Setup and pilot">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2–Q3: Year 1 engineering days to build, pilot, and score comments (U1/U2/N1/N2).</span>
+                    <span class="hint" role="tooltip">Year 1 engineering days to build, pilot, and evaluate the internal review agent.</span>
                   </span>
                 </div>
                 <input id="internalSetupDays" type="number" min="0" step="any" inputmode="decimal" required />
@@ -602,7 +602,7 @@
                   <label for="internalInfrastructure">Annual hosting / infra ($)</label>
                   <span class="info-wrap">
                     <button type="button" class="info-btn" aria-label="Explain Annual hosting and infrastructure">?</button>
-                    <span class="hint" role="tooltip">Checklist Q2: annual CI runner, sandbox, or server hosting cost for the internal review agent.</span>
+                    <span class="hint" role="tooltip">Annual CI runner, sandbox, or server hosting cost for the internal review agent.</span>
                   </span>
                 </div>
                 <input id="internalInfrastructure" type="number" min="0" step="any" inputmode="decimal" required />
@@ -619,7 +619,7 @@
                 <label for="firstYearBudget">Year 1 budget limit ($, optional)</label>
                 <span class="info-wrap">
                   <button type="button" class="info-btn" aria-label="Explain Year 1 budget limit">?</button>
-                  <span class="hint" role="tooltip">Checklist Q2 &amp; Rule 2: max Year 1 spend you have budgeted; flags options that exceed it. Leave blank for no cap.</span>
+                  <span class="hint" role="tooltip">Optional Year 1 spend cap; highlights any option whose Year 1 total exceeds it. Leave blank for no cap.</span>
                 </span>
               </div>
               <input id="firstYearBudget" type="number" min="0" step="any" inputmode="decimal" placeholder="No limit" />

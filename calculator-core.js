@@ -180,16 +180,16 @@
     if (vendorState === 'yes' && internalState === 'yes') {
       let lean = 'close';
       if (relDiff > 0.1) lean = diffYearOne > 0 ? 'buy' : 'build';
-      // Piecewise mapping matching 4fr | 2fr | 4fr track (0-40% Buy, 40-60% Close, 60-100% Build)
+      // Piecewise mapping matching 3.5fr | 3fr | 3.5fr track (0-35% Buy, 35-65% Crossover, 65-100% Build)
       let positionPct;
       if (relDiff <= 0.1) {
         const signedRel = maxYearOne > 0 ? -diffYearOne / maxYearOne : 0;
-        positionPct = Math.round(50 + (signedRel / 0.1) * 10);
+        positionPct = Math.round(50 + (signedRel / 0.1) * 15);
       } else {
         const t = Math.min(1, (relDiff - 0.1) / 0.9);
         positionPct = diffYearOne > 0
-          ? Math.round(40 - t * 36)
-          : Math.round(60 + t * 36);
+          ? Math.round(35 - t * 31)
+          : Math.round(65 + t * 31);
       }
       const vendorFixedNonSeatYearOne = vendorYearOne - vendorLicense;
       const vendorFixedNonSeatOngoing = vendorOngoing - vendorLicense;

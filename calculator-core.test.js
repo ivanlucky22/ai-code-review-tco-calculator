@@ -168,13 +168,13 @@ test('every element id in the page is unique', () => {
 test('zone marker position always falls inside the segment matching lean', () => {
   const buy = estimate(complete({ developerCount: '10', vendorSeatCostPerDevYear: '600' }));
   assert.equal(buy.decision.zone.lean, 'buy');
-  assert.ok(buy.decision.zone.positionPct < 40, `expected <40, got ${buy.decision.zone.positionPct}`);
+  assert.ok(buy.decision.zone.positionPct < 35, `expected <35, got ${buy.decision.zone.positionPct}`);
 
   const build = estimate(complete({ developerCount: '100', vendorSeatCostPerDevYear: '600' }));
   assert.equal(build.decision.zone.lean, 'build');
-  assert.ok(build.decision.zone.positionPct > 60, `expected >60, got ${build.decision.zone.positionPct}`);
+  assert.ok(build.decision.zone.positionPct > 65, `expected >65, got ${build.decision.zone.positionPct}`);
 
-  // Equal Year 1 totals -> within ±10% close band
+  // Equal Year 1 totals -> within ±10% Crossover Zone
   const close = estimate(complete({
     developerCount: '10',
     vendorSeatCostPerDevYear: '2440',
@@ -185,7 +185,7 @@ test('zone marker position always falls inside the segment matching lean', () =>
   }));
   assert.equal(close.decision.zone.lean, 'close');
   assert.equal(close.decision.status, 'similar-cost');
-  assert.ok(close.decision.zone.positionPct >= 40 && close.decision.zone.positionPct <= 60, `expected 40..60, got ${close.decision.zone.positionPct}`);
+  assert.ok(close.decision.zone.positionPct >= 35 && close.decision.zone.positionPct <= 65, `expected 35..65, got ${close.decision.zone.positionPct}`);
 });
 
 test('owner capacity below peak upkeep triggers build-excluded-capacity status', () => {
