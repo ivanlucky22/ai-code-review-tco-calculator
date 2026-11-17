@@ -3,198 +3,647 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Compare buyer-entered first-year and ongoing costs for internal AI code review and a vendor option, after checking feasibility." />
+  <meta name="description" content="Compare first-year and recurring costs for internal AI code review vs. a vendor option." />
   <title>AI Code Review: Build vs. Buy Cost Calculator</title>
   <style>
     :root {
       color-scheme: light;
-      --bg: #f5f7fa;
-      --surface: #fff;
-      --text: #152033;
-      --muted: #526174;
-      --border: #cbd5e1;
-      --accent: #1459a6;
-      --notice: #eff6ff;
-      --warning: #fff7ed;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --accent: #1d4ed8;
+      --notice: #f1f5f9;
+      --warning: #fffbeb;
+      --warning-border: #fcd34d;
       --success: #ecfdf5;
+      --success-border: #6ee7b7;
+      --danger-bg: #fef2f2;
+      --danger-border: #fca5a5;
+      --danger-text: #991b1b;
+      --radius: 10px;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 1.5rem 1rem 3rem; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, sans-serif; }
-    main { max-width: 980px; margin: 0 auto; }
-    h1 { font-size: clamp(1.65rem, 4vw, 2.2rem); line-height: 1.2; }
-    h2 { margin-top: 2rem; font-size: 1.35rem; }
-    h3 { margin-top: 0; font-size: 1.1rem; }
-    p, li { max-width: 78ch; }
-    .intro, .note { padding: 1rem 1.15rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
-    .note { margin: 1rem 0; background: var(--notice); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 1rem; }
-    fieldset { min-width: 0; margin: 1rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
-    legend { padding: 0 .35rem; font-weight: 700; }
-    label { display: block; margin: .75rem 0 .25rem; font-weight: 650; }
-    input, select { width: 100%; min-height: 2.7rem; padding: .45rem .6rem; border: 1px solid #64748b; border-radius: .35rem; background: #fff; color: var(--text); font: inherit; }
-    input:focus, select:focus, button:focus, a:focus { outline: 3px solid #f59e0b; outline-offset: 2px; }
-    .help { margin: .15rem 0 .5rem; color: var(--muted); font-size: .9rem; }
-    .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1rem; }
-    .result-card { padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
-    .total { margin: .15rem 0; font-size: 1.65rem; font-weight: 750; }
-    .line-items { padding: 0; list-style: none; }
-    .line-items li { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem 0; border-top: 1px solid #e2e8f0; }
-    .line-items li span:last-child { font-variant-numeric: tabular-nums; font-weight: 650; }
-    .verdict { margin-top: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--warning); }
-    .verdict.build-lower-cost, .verdict.vendor-lower-cost, .verdict.vendor-only, .verdict.build-only { background: var(--success); }
-    .errors { margin-top: 1rem; padding: 1rem; border: 1px solid #b45309; border-radius: .65rem; background: var(--warning); }
-    button { min-height: 2.7rem; margin-top: 1rem; padding: .5rem .85rem; border: 1px solid #475569; border-radius: .35rem; background: #fff; color: var(--text); font: inherit; cursor: pointer; }
-    .small { color: var(--muted); font-size: .9rem; }
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 940px; margin: 0 auto; }
+    header { margin-bottom: 1.25rem; }
+    h1 { margin: 0 0 .35rem; font-size: clamp(1.5rem, 3.5vw, 2rem); letter-spacing: -0.02em; line-height: 1.2; }
+    .subtitle { margin: 0; color: var(--muted); font-size: .98rem; }
+    details.context, details.advanced {
+      margin-top: .85rem;
+      padding: .75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    details.context { font-size: .88rem; color: var(--muted); }
+    details.context summary, details.advanced summary {
+      cursor: pointer; font-weight: 700; color: var(--text); font-size: .95rem;
+    }
+    details.context p { margin: .5rem 0 0; }
+    details.advanced[open] summary { margin-bottom: 1rem; }
+
+    h2 { margin: 1.5rem 0 .75rem; font-size: 1.05rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: .5rem; }
+    .step-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.45rem; height: 1.45rem; border-radius: 999px;
+      background: var(--text); color: #fff; font-size: .78rem; font-weight: 700;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1rem; }
+
+    .card {
+      padding: 1.1rem 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+    .card-title { margin: 0 0 .85rem; font-size: .95rem; font-weight: 700; color: var(--text); }
+
+    .field { margin-bottom: .95rem; position: relative; }
+    .field:last-child { margin-bottom: 0; }
+    .field-head {
+      display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+      margin-bottom: .3rem;
+    }
+    .field-label { display: flex; align-items: center; gap: .35rem; flex: 1; min-width: 0; }
+    .field-label label { margin: 0; }
+    .info-wrap { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+    .info-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.15rem; height: 1.15rem; padding: 0;
+      border-radius: 999px; border: 1px solid var(--border-strong);
+      background: var(--notice); color: var(--muted);
+      font-size: .72rem; font-weight: 700; line-height: 1; cursor: help;
+    }
+    .info-btn:hover, .info-wrap:focus-within .info-btn {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+    .hint {
+      display: none;
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 6px);
+      z-index: 40;
+      width: max-content;
+      max-width: min(290px, 78vw);
+      padding: .5rem .65rem;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: .78rem;
+      font-weight: 400;
+      line-height: 1.4;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .22);
+      pointer-events: none;
+    }
+    .info-wrap:hover .hint, .info-wrap:focus-within .hint { display: block; }
+    .rate-live { display: block; margin-top: .2rem; color: var(--muted); font-size: .78rem; }
+    .input-pair { display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+    label { display: block; margin-bottom: .25rem; font-size: .85rem; font-weight: 600; color: var(--text); }
+
+    input[type="number"] {
+      width: 6.2rem;
+      height: 2.15rem;
+      padding: .25rem .5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: .88rem;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    select {
+      height: 2.15rem;
+      padding: .2rem .5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: .85rem;
+    }
+    select.full { width: 100%; height: 2.4rem; padding: .35rem .6rem; border-radius: 7px; }
+    input[type="range"] {
+      width: 100%;
+      height: 1.35rem;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-color: var(--accent);
+    }
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    input[aria-invalid="true"] {
+      border-color: var(--danger-text);
+      background: var(--danger-bg);
+    }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: .75rem; margin-top: 1rem;
+    }
+    .toolbar-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    button {
+      height: 2.3rem; padding: 0 .85rem;
+      border: 1px solid var(--border-strong); border-radius: 7px;
+      background: var(--surface); color: var(--text);
+      font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: var(--notice); }
+    .small { margin: 0; color: var(--muted); font-size: .83rem; }
+
+    .status-box {
+      margin-top: 1rem;
+      padding: .85rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .errors {
+      margin-top: 1rem;
+      padding: .85rem 1rem;
+      border: 1px solid var(--warning-border);
+      border-radius: var(--radius);
+      background: var(--warning);
+      font-size: .88rem;
+    }
+    .errors p { margin: 0; font-weight: 600; }
+    .errors ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+
+    .verdict {
+      margin-bottom: 1rem;
+      padding: 1rem 1.15rem;
+      border: 1px solid var(--warning-border);
+      border-radius: var(--radius);
+      background: var(--warning);
+    }
+    .verdict.vendor-only, .verdict.build-only {
+      background: var(--success);
+      border-color: var(--success-border);
+    }
+    .verdict.vendor-lower-cost, .verdict.build-lower-cost, .verdict.similar-cost {
+      background: var(--surface);
+      border-color: var(--border-strong);
+    }
+    .verdict strong { display: block; font-size: .95rem; margin-bottom: .25rem; }
+    .verdict p { margin: .25rem 0 0; font-size: .9rem; }
+
+    .zone-box {
+      margin-bottom: 1rem;
+      padding: .9rem 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .zone-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .55rem; }
+    .zone-detail { font-size: .84rem; color: var(--muted); }
+    .zone-track {
+      position: relative;
+      display: grid;
+      grid-template-columns: 4fr 2fr 4fr;
+      height: .75rem;
+      border-radius: 999px;
+      overflow: visible;
+      border: 1px solid var(--border-strong);
+    }
+    .zone-seg.buy { background: #dbeafe; border-radius: 999px 0 0 999px; }
+    .zone-seg.close { background: #e2e8f0; }
+    .zone-seg.build { background: #e0e7ff; border-radius: 0 999px 999px 0; }
+    .zone-labels {
+      display: grid;
+      grid-template-columns: 4fr 2fr 4fr;
+      margin-top: .35rem;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: center;
+    }
+    .zone-marker {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .45);
+      transform: translate(-50%, -50%);
+      transition: left .15s ease-out;
+      pointer-events: none;
+    }
+
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .85rem; }
+    .card-header .card-title { margin: 0; }
+    .badge {
+      display: inline-block; padding: .15rem .5rem; border-radius: 999px;
+      font-size: .74rem; font-weight: 700; line-height: 1.2;
+    }
+    .badge.over-budget { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
+    .badge.stale { background: var(--warning); color: #92400e; border: 1px solid var(--warning-border); margin-bottom: .6rem; }
+    .stale-results { opacity: .55; }
+
+    .totals-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .85rem; }
+    .stat { padding: .65rem .75rem; border-radius: 8px; background: var(--notice); }
+    .stat-label { display: block; font-size: .76rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+    .total { margin: .15rem 0 0; font-size: 1.45rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+    .line-items { margin: 0; padding: 0; list-style: none; font-size: .88rem; }
+    .line-items li { display: flex; justify-content: space-between; gap: 1rem; padding: .42rem 0; border-top: 1px solid var(--border); }
+    .line-items li span:first-child { color: var(--muted); }
+    .line-items li span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+    .sticky-summary {
+      position: sticky;
+      bottom: .75rem;
+      z-index: 20;
+      margin-top: 1rem;
+      padding: .6rem .95rem;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem 1rem;
+      font-size: .85rem;
+    }
+    .sticky-summary strong { font-variant-numeric: tabular-nums; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+
     [hidden] { display: none !important; }
-    @media (max-width: 480px) { body { padding-inline: .75rem; } fieldset { padding: .75rem; } .line-items li { font-size: .92rem; } }
+    @media (max-width: 520px) {
+      body { padding: 1.25rem .75rem 3.5rem; }
+      .totals-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>AI Code Review: Build vs. Buy Cost Calculator</h1>
-    <p class="intro">Estimate first-year and ongoing costs using your team's actual quote, workload, setup, and ownership estimates. This is a scenario calculator, not a market benchmark or a recommendation that applies to every team.</p>
-    <p class="note"><strong>Use feasibility before cost.</strong> Mark whether each option meets your mandatory security, data, governance, and technical requirements. Unknown means “verify first.” Cost cannot make an infeasible option suitable.</p>
-    <p class="small">The companion Build vs. Buy checklist reports about $2 per review run on frontier models (roughly $4 per PR at ~2 review runs per PR) in model tokens from one personal implementation, excluding engineering time and infrastructure. That is context—not a default or benchmark. Enter your own current costs here.</p>
+    <header>
+      <h1>AI Code Review: Build vs. Buy Calculator</h1>
+      <p class="subtitle">Adjust your team size, vendor seat price, PR volume, and engineering rate to compare Year 1 and recurring costs.</p>
+      <details class="context">
+        <summary>Notes &amp; checklist reference</summary>
+        <p>Uses 50 working weeks (250 working days) per year; enter 0 when confirmed zero. In the companion Build vs. Buy checklist, one personal CI implementation saw about $2 per review run on frontier models (roughly $4 per PR at ~2 runs, rough estimate, not measured), with 1–2 days/week maintenance early on and ~0.5 day/week once mature.</p>
+      </details>
+    </header>
 
     <form id="calculator" novalidate>
-      <h2>1. Check fit and capacity</h2>
-      <div class="grid">
-        <fieldset>
-          <legend>Vendor option</legend>
-          <label for="vendorFeasibility">Does the vendor option meet all mandatory requirements?</label>
-          <select id="vendorFeasibility" name="vendorFeasibility" required>
-            <option value="">Choose one</option>
-            <option value="yes">Yes — confirmed</option>
-            <option value="no">No — one or more requirements fail</option>
-            <option value="unknown">Unknown — not verified</option>
-          </select>
-          <p class="help">Check the actual plan, deployment, data terms, required controls, review limits, and contract.</p>
-        </fieldset>
-        <fieldset>
-          <legend>Internal option</legend>
-          <label for="internalFeasibility">Can an internal approach meet all mandatory requirements?</label>
-          <select id="internalFeasibility" name="internalFeasibility" required>
-            <option value="">Choose one</option>
-            <option value="yes">Yes — confirmed</option>
-            <option value="no">No — one or more requirements fail</option>
-            <option value="unknown">Unknown — not verified</option>
-          </select>
-          <p class="help">Base this on the architecture, model, hosting, security, and governance requirements you need.</p>
-        </fieldset>
-      </div>
-
-      <h2>2. Enter your cost assumptions</h2>
-      <p class="small">Enter annual USD amounts and your best supported estimates. All fields are required; enter 0 only when you have confirmed there is no cost or capacity for that item. Engineering effort uses 50 working weeks per year.</p>
-      <div class="grid">
-        <fieldset>
-          <legend>Vendor cost inputs</legend>
-          <label for="vendorLicense">Annual vendor license/seat quote for your team (USD)</label>
-          <input id="vendorLicense" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="vendorOverages">Annual PR overages or usage charges (USD)</label>
-          <input id="vendorOverages" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="vendorSetup">One-time vendor setup/onboarding cost, Year 1 (USD)</label>
-          <input id="vendorSetup" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="vendorOversightDaysPerWeek">Your vendor oversight time (days per week)</label>
-          <input id="vendorOversightDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
-          <p class="help">Include your team's ongoing configuration and review time—not work the vendor contract explicitly covers.</p>
-
-          <label for="vendorEvaluationDays">One-time vendor trial and evaluation, Year 1 (engineering days)</label>
-          <input id="vendorEvaluationDays" type="number" min="0" step="any" inputmode="decimal" required />
-        </fieldset>
-
-        <fieldset>
-          <legend>Internal cost inputs</legend>
-          <label for="monthlyReviews">Pull requests reviewed each month</label>
-          <input id="monthlyReviews" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="tokenCostPerReview">Model token cost per review run (USD)</label>
-          <input id="tokenCostPerReview" type="number" min="0" step="any" inputmode="decimal" required />
-          <p class="help">Token cost for a single review run only. Do not include hosting here; enter hosting and infrastructure below.</p>
-
-          <label for="reviewRunsPerPR">Average review runs per PR</label>
-          <input id="reviewRunsPerPR" type="number" min="0" step="any" inputmode="decimal" required />
-          <p class="help">Token cost per PR = token cost per review run &times; review runs per PR. If you already know your total token cost per PR, enter it above and enter 1 here.</p>
-
-          <label for="internalInfrastructure">Annual internal hosting and infrastructure cost (USD)</label>
-          <input id="internalInfrastructure" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="internalSetupDays">Internal setup, pilot, and evaluation (engineering days)</label>
-          <input id="internalSetupDays" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="internalMaintenanceYearOneDaysPerWeek">Internal maintenance, Year 1 average (days per week)</label>
-          <input id="internalMaintenanceYearOneDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
-
-          <label for="internalMaintenanceDaysPerWeek">Internal maintenance once mature (days per week)</label>
-          <input id="internalMaintenanceDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
-          <p class="help">Use your own estimates. The checklist author's experience was about 1–2 days/week early on and around 0.5 day/week once mature, so a Year 1 average sits in between; that is not a universal staffing rule.</p>
-        </fieldset>
-      </div>
-
-      <fieldset>
-        <legend>Shared cost and owner capacity</legend>
-        <div class="grid">
-          <div>
-            <label for="engineeringCostPerDay">Fully loaded engineering cost per day (USD)</label>
-            <input id="engineeringCostPerDay" type="number" min="0" step="any" inputmode="decimal" required />
-            <p class="help">Use your local cost estimate. The calculator does not supply a salary or day-rate benchmark.</p>
+      <h2>Comparison</h2>
+      <p id="srSummary" class="sr-only" aria-live="polite"></p>
+      <div id="results">
+        <span id="staleBadge" class="badge stale" hidden>Stale estimate — fix the highlighted input</span>
+        <div id="zoneBox" class="zone-box">
+          <div class="zone-head">
+            <span id="zoneDetail" class="zone-detail"></span>
           </div>
-          <div>
-            <label for="availableOwnerDaysPerWeek">Owner capacity available for internal work (days per week)</label>
-            <input id="availableOwnerDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
-            <p class="help">If this is below either internal maintenance estimate, the internal option is treated as infeasible for this comparison.</p>
+          <div id="zoneTrack" class="zone-track" role="img" aria-label="Buy vs. Build cost spectrum">
+            <span class="zone-seg buy"></span>
+            <span class="zone-seg close"></span>
+            <span class="zone-seg build"></span>
+            <span id="zoneMarker" class="zone-marker" style="left: 50%;"></span>
           </div>
-          <div>
-            <label for="firstYearBudget">First-year budget (USD, optional)</label>
-            <input id="firstYearBudget" type="number" min="0" step="any" inputmode="decimal" />
-            <p class="help">Optional. If entered, the summary checks whether feasible Year 1 estimates fit within your budget.</p>
+          <div class="zone-labels" aria-hidden="true">
+            <span>Buy zone</span>
+            <span>Close (&plusmn;10%)</span>
+            <span>Build zone</span>
           </div>
         </div>
-      </fieldset>
-
-      <button type="button" id="resetBtn">Clear all inputs</button>
-      <p id="saveStatus" class="small" aria-live="polite">Inputs are saved in this browser only.</p>
-    </form>
-
-    <section id="inputErrors" class="errors" aria-live="polite" hidden></section>
-    <section id="results" aria-labelledby="resultsHeading" hidden>
-      <h2 id="resultsHeading">3. Cost estimates</h2>
-      <p class="small">Year 1 includes one-time setup and evaluation and uses Year 1 maintenance. The recurring annual estimate excludes one-time costs and uses mature maintenance. These estimates cover only the line items below; update inputs if your quote or operating scope changes.</p>
-      <div class="results-grid">
-        <article class="result-card">
-          <h3>Vendor option</h3>
-          <p class="small">Year 1 estimate</p>
-          <p id="vendorYearOne" class="total"></p>
-          <p class="small">Recurring annual estimate</p>
-          <p id="vendorOngoing" class="total"></p>
-          <ul class="line-items">
-            <li><span>Annual license/seat quote</span><span id="vendorLicenseCost"></span></li>
-            <li><span>Annual PR overages/usage</span><span id="vendorOveragesCost"></span></li>
-            <li><span>One-time setup</span><span id="vendorSetupCost"></span></li>
-            <li><span>One-time trial/evaluation (Year 1)</span><span id="vendorEvaluationCost"></span></li>
-            <li><span>Annualized customer oversight</span><span id="vendorOversight"></span></li>
-          </ul>
-        </article>
-        <article class="result-card">
-          <h3>Internal option</h3>
-          <p class="small">Year 1 estimate</p>
-          <p id="internalYearOne" class="total"></p>
-          <p class="small">Recurring annual estimate</p>
-          <p id="internalOngoing" class="total"></p>
-          <ul class="line-items">
-            <li><span>Estimated token cost per PR</span><span id="internalTokenCostPerPR"></span></li>
-            <li><span>Annual model tokens</span><span id="internalTokens"></span></li>
-            <li><span>Annual hosting/infrastructure</span><span id="internalInfrastructureCost"></span></li>
-            <li><span>One-time setup</span><span id="internalSetupCost"></span></li>
-            <li><span>Maintenance, Year 1</span><span id="internalMaintenanceYearOne"></span></li>
-            <li><span>Maintenance, ongoing</span><span id="internalMaintenance"></span></li>
-          </ul>
-        </article>
+        <div class="grid-2">
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Buy (Vendor)</h3>
+              <span id="vendorOverBudgetBadge" class="badge over-budget" hidden>Over budget</span>
+            </div>
+            <div class="totals-row">
+              <div class="stat">
+                <span class="stat-label">Year 1</span>
+                <p id="vendorYearOne" class="total"></p>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Recurring / yr</span>
+                <p id="vendorOngoing" class="total"></p>
+              </div>
+            </div>
+            <ul class="line-items">
+              <li><span>Annual license / seats</span><span id="vendorLicenseCost"></span></li>
+              <li><span>Annual PR overages</span><span id="vendorOveragesCost"></span></li>
+              <li><span>Annualized oversight</span><span id="vendorOversight"></span></li>
+              <li><span>Trial &amp; evaluation (Year 1)</span><span id="vendorEvaluationCost"></span></li>
+              <li><span>One-time setup (Year 1)</span><span id="vendorSetupCost"></span></li>
+            </ul>
+          </article>
+          <article class="card">
+            <div class="card-header">
+              <h3 class="card-title">Build (Internal)</h3>
+              <span id="internalOverBudgetBadge" class="badge over-budget" hidden>Over budget</span>
+            </div>
+            <div class="totals-row">
+              <div class="stat">
+                <span class="stat-label">Year 1</span>
+                <p id="internalYearOne" class="total"></p>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Recurring / yr</span>
+                <p id="internalOngoing" class="total"></p>
+              </div>
+            </div>
+            <ul class="line-items">
+              <li><span>Annual model tokens (<span id="internalTokenCostPerPR"></span>/PR)</span><span id="internalTokens"></span></li>
+              <li><span>Annual hosting / infra</span><span id="internalInfrastructureCost"></span></li>
+              <li><span>Upkeep, ongoing</span><span id="internalMaintenance"></span></li>
+              <li><span>Upkeep, Year 1</span><span id="internalMaintenanceYearOne"></span></li>
+              <li><span>Setup &amp; pilot (Year 1)</span><span id="internalSetupCost"></span></li>
+            </ul>
+          </article>
+        </div>
       </div>
-      <div id="verdict" class="verdict" aria-live="polite"></div>
-    </section>
+      <div id="emptyHint" class="status-box" hidden>Enter your numbers below or click "Reset to example" to calculate estimates.</div>
+      <section id="inputErrors" class="errors" aria-live="polite" hidden></section>
+
+      <h2>Core parameters</h2>
+      <div class="card">
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="developerCount">Developers</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Developers">?</button>
+                    <span class="hint" role="tooltip">Active developers in scope; multiplied by vendor seat price (checklist Q2).</span>
+                  </span>
+                </div>
+                <input id="developerCount" type="number" min="1" step="1" inputmode="numeric" required />
+              </div>
+              <input type="range" data-for="developerCount" min="1" max="200" step="1" aria-label="Number of developers slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="vendorSeatCostPerDevYear">Vendor seat ($ / dev / yr)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Vendor seat">?</button>
+                    <span class="hint" role="tooltip">Quoted annual seat price per dev. Example $600 fits $500–700 enterprise quotes; public list plans &approx; $180–360 (2026 rough reference).</span>
+                  </span>
+                </div>
+                <input id="vendorSeatCostPerDevYear" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="vendorSeatCostPerDevYear" min="0" max="1500" step="10" aria-label="Vendor seat cost per developer per year slider" />
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="monthlyReviews">Pull requests / month (team total)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Pull requests per month">?</button>
+                    <span class="hint" role="tooltip">Total monthly PRs across all developers (not per dev). Checklist example: ~10 PRs/dev/mo; drives Build token cost.</span>
+                  </span>
+                </div>
+                <input id="monthlyReviews" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="monthlyReviews" min="0" max="2000" step="10" aria-label="Total pull requests per month across the team slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="engineeringCost">Fully loaded engineering cost</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Fully loaded engineering cost">?</button>
+                    <span class="hint" role="tooltip">Salary + overhead used to value setup, trial, and upkeep time (checklist Q2: 50 working weeks / 250 days per year).</span>
+                  </span>
+                </div>
+                <div class="input-pair">
+                  <input id="engineeringCost" type="number" min="0" step="any" inputmode="decimal" required />
+                  <select id="engineeringCostUnit" aria-label="Engineering cost period">
+                    <option value="day">/ day</option>
+                    <option value="month">/ month</option>
+                    <option value="year">/ year</option>
+                  </select>
+                </div>
+              </div>
+              <input type="range" data-for="engineeringCost" min="0" max="2000" step="25" aria-label="Engineering cost slider" />
+              <span id="engineeringRateHint" class="rate-live"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <details class="advanced">
+        <summary>Advanced parameters</summary>
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="card-title">Buy (Vendor)</h3>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="vendorOversightDaysPerWeek">Vendor oversight (days/wk)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Vendor oversight">?</button>
+                    <span class="hint" role="tooltip">Checklist Q1–Q2: ongoing weekly admin, custom rule tuning, and vendor follow-up (&times; 50 wks/yr).</span>
+                  </span>
+                </div>
+                <input id="vendorOversightDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="vendorOversightDaysPerWeek" min="0" max="2" step="0.05" aria-label="Vendor oversight days per week slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="vendorOverages">Annual PR overages ($)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Annual PR overages">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2 &amp; plan limits: extra charges when PRs exceed plan caps (extra PRs may be skipped or billed). Use $0 only if confirmed.</span>
+                  </span>
+                </div>
+                <input id="vendorOverages" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="vendorOverages" min="0" max="20000" step="100" aria-label="Annual PR overages slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="vendorEvaluationDays">Trial &amp; evaluation (eng. days)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Trial and evaluation">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2–Q3: Year 1 engineering days to run a vendor trial and score comment usefulness (U1/U2/N1/N2).</span>
+                  </span>
+                </div>
+                <input id="vendorEvaluationDays" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="vendorEvaluationDays" min="0" max="30" step="1" aria-label="Vendor trial and evaluation days slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="vendorSetup">One-time setup ($, Year 1)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain One-time setup">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: one-time onboarding, integration, or contract setup fees in Year 1. Use $0 only if confirmed.</span>
+                  </span>
+                </div>
+                <input id="vendorSetup" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="vendorSetup" min="0" max="20000" step="100" aria-label="One-time vendor setup slider" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Build (Internal)</h3>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="availableOwnerDaysPerWeek">Owner capacity (days/wk)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Owner capacity">?</button>
+                    <span class="hint" role="tooltip">Checklist Q1: weekly time an owner (+ backup) can spare. Must cover peak upkeep or Build is excluded.</span>
+                  </span>
+                </div>
+                <input id="availableOwnerDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="availableOwnerDaysPerWeek" min="0" max="5" step="0.1" aria-label="Owner capacity days per week slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="internalMaintenanceYearOneDaysPerWeek">Year 1 upkeep (days/wk)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Year 1 upkeep">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: average weekly Year 1 maintenance (prompt tuning, log review, false positives; 1–2 days/wk early on in personal CI experience).</span>
+                  </span>
+                </div>
+                <input id="internalMaintenanceYearOneDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="internalMaintenanceYearOneDaysPerWeek" min="0" max="5" step="0.1" aria-label="Year 1 internal upkeep days per week slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="internalMaintenanceDaysPerWeek">Mature upkeep (days/wk)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Mature upkeep">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: typical weekly maintenance once settled (~0.5 day/wk in personal CI experience).</span>
+                  </span>
+                </div>
+                <input id="internalMaintenanceDaysPerWeek" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="internalMaintenanceDaysPerWeek" min="0" max="5" step="0.1" aria-label="Mature internal upkeep days per week slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="tokenCostPerReview">Token cost / run ($)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Token cost per run">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: LLM token cost per review run (~$2/run on frontier models in personal CI experience; lower-cost models not measured in CI).</span>
+                  </span>
+                </div>
+                <input id="tokenCostPerReview" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="tokenCostPerReview" min="0" max="10" step="0.25" aria-label="Token cost per review run slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="reviewRunsPerPR">Review runs / PR</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Review runs per PR">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: average review runs triggered per PR (~2 runs/PR rough estimate, not measured &rarr; ~$4/PR at $2/run).</span>
+                  </span>
+                </div>
+                <input id="reviewRunsPerPR" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="reviewRunsPerPR" min="0" max="5" step="0.5" aria-label="Review runs per PR slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="internalSetupDays">Setup &amp; pilot (eng. days)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Setup and pilot">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2–Q3: Year 1 engineering days to build, pilot, and score comments (U1/U2/N1/N2).</span>
+                  </span>
+                </div>
+                <input id="internalSetupDays" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="internalSetupDays" min="0" max="60" step="1" aria-label="Internal setup and pilot days slider" />
+            </div>
+            <div class="field">
+              <div class="field-head">
+                <div class="field-label">
+                  <label for="internalInfrastructure">Annual hosting / infra ($)</label>
+                  <span class="info-wrap">
+                    <button type="button" class="info-btn" aria-label="Explain Annual hosting and infrastructure">?</button>
+                    <span class="hint" role="tooltip">Checklist Q2: annual CI runner, sandbox, or server hosting cost for the internal review agent.</span>
+                  </span>
+                </div>
+                <input id="internalInfrastructure" type="number" min="0" step="any" inputmode="decimal" required />
+              </div>
+              <input type="range" data-for="internalInfrastructure" min="0" max="20000" step="100" aria-label="Annual hosting and infrastructure slider" />
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 1rem;">
+          <h3 class="card-title">Shared constraint</h3>
+          <div class="field" style="margin-bottom: 0;">
+            <div class="field-head">
+              <div class="field-label">
+                <label for="firstYearBudget">Year 1 budget limit ($, optional)</label>
+                <span class="info-wrap">
+                  <button type="button" class="info-btn" aria-label="Explain Year 1 budget limit">?</button>
+                  <span class="hint" role="tooltip">Checklist Q2 &amp; Rule 2: max Year 1 spend you have budgeted; flags options that exceed it. Leave blank for no cap.</span>
+                </span>
+              </div>
+              <input id="firstYearBudget" type="number" min="0" step="any" inputmode="decimal" placeholder="No limit" />
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="toolbar">
+        <div>
+          <p class="small">Illustrative starting scenario (not a benchmark).</p>
+          <p id="saveStatus" class="small">Runs locally in your browser — nothing is stored or sent.</p>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" id="exampleBtn">Reset to example</button>
+          <button type="button" id="resetBtn">Clear all</button>
+        </div>
+      </div>
+
+      <div id="stickySummary" class="sticky-summary" hidden>
+        <span id="stickyText"></span>
+        <a href="#results" style="font-size: .82rem; font-weight: 600; color: var(--accent);">Back to comparison</a>
+      </div>
+    </form>
   </main>
   <script src="calculator-core.js"></script>
   <script src="calculator.js"></script>

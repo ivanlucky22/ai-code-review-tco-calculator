@@ -8,7 +8,7 @@ A static, browser-based calculator for comparing buyer-entered first-year and re
 - Requires the buyer to enter current vendor pricing, review overages, setup, oversight, internal token cost, infrastructure, engineering effort, and owner capacity.
 - Separates one-time setup from recurring annual costs and uses 50 working weeks to annualize weekly engineering effort.
 - Reports when an option is marked infeasible, when requirements remain unknown, or when neither option is currently feasible; cost does not override those constraints.
-- Stores inputs in the current browser's local storage. The page contains no analytics or code that submits the entered values to a server.
+- Runs entirely in the browser with no analytics, local storage, or server submissions.
 
 The companion checklist reports an owner-observed cost of about $2 per review run on frontier models (roughly $4 per PR at ~2 review runs per PR) in model tokens, excluding engineering time and infrastructure. That is one person's experience, not a benchmark or a default for this calculator. Use your own current data and quote. The estimates are scenario-specific and are not guarantees or substitutes for security, legal, or procurement review.
 

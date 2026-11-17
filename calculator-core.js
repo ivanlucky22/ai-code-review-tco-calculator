@@ -6,8 +6,11 @@
   'use strict';
 
   const WORKING_WEEKS_PER_YEAR = 50;
+  const WORKING_DAYS_PER_YEAR = WORKING_WEEKS_PER_YEAR * 5;
+  const ENGINEERING_COST_UNITS = ['day', 'month', 'year'];
   const REQUIRED_NUMBERS = [
-    'vendorLicense',
+    'developerCount',
+    'vendorSeatCostPerDevYear',
     'vendorOverages',
     'vendorSetup',
     'vendorOversightDaysPerWeek',
@@ -19,15 +22,22 @@
     'internalSetupDays',
     'internalMaintenanceYearOneDaysPerWeek',
     'internalMaintenanceDaysPerWeek',
-    'engineeringCostPerDay',
+    'engineeringCost',
     'availableOwnerDaysPerWeek',
   ];
   const OPTIONAL_NUMBERS = ['firstYearBudget'];
 
+  function toDailyEngineeringCost(amount, unit) {
+    if (unit === 'day') return amount;
+    if (unit === 'month') return (amount * 12) / WORKING_DAYS_PER_YEAR;
+    return amount / WORKING_DAYS_PER_YEAR;
+  }
+
   function validate(input) {
     const errors = [];
     const labels = {
-      vendorLicense: 'Annual vendor license/seat quote for your team',
+      developerCount: 'Number of developers',
+      vendorSeatCostPerDevYear: 'Vendor license cost per developer per year',
       vendorOverages: 'Annual PR overages or usage charges',
       vendorSetup: 'One-time vendor setup/onboarding cost',
       vendorOversightDaysPerWeek: 'Vendor oversight time in days per week',
@@ -39,7 +49,7 @@
       internalSetupDays: 'Internal setup, pilot, and evaluation days',
       internalMaintenanceYearOneDaysPerWeek: 'Year 1 average internal maintenance days per week',
       internalMaintenanceDaysPerWeek: 'Ongoing (mature) internal maintenance days per week',
-      engineeringCostPerDay: 'Fully loaded engineering cost per day',
+      engineeringCost: 'Fully loaded engineering cost',
       availableOwnerDaysPerWeek: 'Owner capacity available in days per week',
       firstYearBudget: 'First-year budget',
     };
@@ -58,10 +68,13 @@
         errors.push(`${labels[field]} must be a non-negative number`);
       }
     }
-    if (input.vendorFeasibility !== 'yes' && input.vendorFeasibility !== 'no' && input.vendorFeasibility !== 'unknown') {
+    if (!ENGINEERING_COST_UNITS.includes(input.engineeringCostUnit)) {
+      errors.push('Choose an engineering cost period: day, month, or year');
+    }
+    if (input.vendorFeasibility !== undefined && input.vendorFeasibility !== 'yes' && input.vendorFeasibility !== 'no' && input.vendorFeasibility !== 'unknown') {
       errors.push('Choose whether the vendor option meets the mandatory requirements: yes, no, or unknown');
     }
-    if (input.internalFeasibility !== 'yes' && input.internalFeasibility !== 'no' && input.internalFeasibility !== 'unknown') {
+    if (input.internalFeasibility !== undefined && input.internalFeasibility !== 'yes' && input.internalFeasibility !== 'no' && input.internalFeasibility !== 'unknown') {
       errors.push('Choose whether the internal option meets the mandatory requirements: yes, no, or unknown');
     }
     return errors;
@@ -72,44 +85,54 @@
     if (errors.length) return { errors, costs: null, decision: null };
 
     const n = Object.fromEntries(REQUIRED_NUMBERS.map((key) => [key, Number(input[key])]));
-    const vendorLicense = n.vendorLicense;
-    const vendorOversight = n.vendorOversightDaysPerWeek * WORKING_WEEKS_PER_YEAR * n.engineeringCostPerDay;
+    const engineeringCostPerDay = toDailyEngineeringCost(n.engineeringCost, input.engineeringCostUnit);
+
+    const vendorLicense = n.developerCount * n.vendorSeatCostPerDevYear;
+    const vendorOversight = n.vendorOversightDaysPerWeek * WORKING_WEEKS_PER_YEAR * engineeringCostPerDay;
     const vendorOngoing = vendorLicense + n.vendorOverages + vendorOversight;
-    const vendorEvaluation = n.vendorEvaluationDays * n.engineeringCostPerDay;
+    const vendorEvaluation = n.vendorEvaluationDays * engineeringCostPerDay;
     const vendorYearOne = vendorOngoing + n.vendorSetup + vendorEvaluation;
 
     const tokenCostPerPR = n.tokenCostPerReview * n.reviewRunsPerPR;
     const internalTokens = n.monthlyReviews * 12 * tokenCostPerPR;
-    const internalMaintenance = n.internalMaintenanceDaysPerWeek * WORKING_WEEKS_PER_YEAR * n.engineeringCostPerDay;
-    const internalMaintenanceYearOne = n.internalMaintenanceYearOneDaysPerWeek * WORKING_WEEKS_PER_YEAR * n.engineeringCostPerDay;
-    const internalSetup = n.internalSetupDays * n.engineeringCostPerDay;
+    const internalMaintenance = n.internalMaintenanceDaysPerWeek * WORKING_WEEKS_PER_YEAR * engineeringCostPerDay;
+    const internalMaintenanceYearOne = n.internalMaintenanceYearOneDaysPerWeek * WORKING_WEEKS_PER_YEAR * engineeringCostPerDay;
+    const internalSetup = n.internalSetupDays * engineeringCostPerDay;
     const internalOngoing = internalTokens + n.internalInfrastructure + internalMaintenance;
     const internalYearOne = internalTokens + n.internalInfrastructure + internalMaintenanceYearOne + internalSetup;
 
-    const vendorState = input.vendorFeasibility;
-    let internalState = input.internalFeasibility;
+    const vendorState = input.vendorFeasibility || 'yes';
+    let internalState = input.internalFeasibility || 'yes';
     let capacityNote = '';
+    let internalExcludedByCapacity = false;
     const peakMaintenance = Math.max(n.internalMaintenanceYearOneDaysPerWeek, n.internalMaintenanceDaysPerWeek);
     if (internalState === 'yes' && n.availableOwnerDaysPerWeek < peakMaintenance) {
       internalState = 'no';
-      capacityNote = 'Available owner time is below the internal maintenance estimate.';
+      internalExcludedByCapacity = true;
+      capacityNote = `Build (internal) excluded: owner capacity (${n.availableOwnerDaysPerWeek} d/wk) is below peak upkeep (${peakMaintenance} d/wk).`;
     }
+
+    const maxYearOne = Math.max(vendorYearOne, internalYearOne);
+    const diffYearOne = internalYearOne - vendorYearOne; // >0 means Buy cheaper, <0 means Build cheaper
+    const relDiff = maxYearOne > 0 ? Math.abs(diffYearOne) / maxYearOne : 0;
 
     let decision;
     if (vendorState === 'unknown' || internalState === 'unknown') {
       decision = { status: 'verify-first', message: 'Verify the unknown hard requirements before choosing an option.' };
     } else if (vendorState === 'no' && internalState === 'no') {
       decision = { status: 'none-feasible', message: 'Neither option currently meets the stated requirements. Resolve the constraints or defer the decision.' };
+    } else if (vendorState === 'yes' && internalExcludedByCapacity) {
+      decision = { status: 'build-excluded-capacity', message: `${capacityNote} Only Buy (vendor) meets capacity; confirm the quote and contract scope before proceeding.` };
     } else if (vendorState === 'yes' && internalState === 'no') {
-      decision = { status: 'vendor-only', message: 'Only the vendor option is marked feasible. Confirm the quote and contract scope before proceeding.' };
+      decision = { status: 'vendor-only', message: 'Only Buy (vendor) is marked feasible. Confirm the quote and contract scope before proceeding.' };
     } else if (vendorState === 'no' && internalState === 'yes') {
-      decision = { status: 'build-only', message: 'Only the internal option is marked feasible. Confirm ownership and operating requirements before proceeding.' };
+      decision = { status: 'build-only', message: 'Only Build (internal) is marked feasible. Confirm ownership and operating requirements before proceeding.' };
+    } else if (relDiff <= 0.1) {
+      decision = { status: 'similar-cost', message: 'Close call: Year 1 estimates for Buy (vendor) and Build (internal) are within ±10%. Decide based on constraints, ownership, and measured pilot results.' };
     } else if (vendorYearOne < internalYearOne) {
-      decision = { status: 'vendor-lower-cost', message: 'The vendor estimate is lower in Year 1 under these inputs; this does not override fit or risk.' };
-    } else if (internalYearOne < vendorYearOne) {
-      decision = { status: 'build-lower-cost', message: 'The internal estimate is lower in Year 1 under these inputs; this does not override fit or risk.' };
+      decision = { status: 'vendor-lower-cost', message: 'Buy (vendor) estimate is lower in Year 1 under these inputs; this does not override fit or risk.' };
     } else {
-      decision = { status: 'similar-cost', message: 'The Year 1 estimates are equal under these inputs. Decide based on constraints, ownership, and measured pilot results.' };
+      decision = { status: 'build-lower-cost', message: 'Build (internal) estimate is lower in Year 1 under these inputs; this does not override fit or risk.' };
     }
 
     let ongoingNote = '';
@@ -122,31 +145,61 @@
     }
 
     let budgetNote = '';
+    let vendorOverBudget = false;
+    let internalOverBudget = false;
     const rawBudget = input.firstYearBudget;
     const hasBudget = rawBudget !== '' && rawBudget !== null && rawBudget !== undefined;
     if (hasBudget && vendorState !== 'unknown' && internalState !== 'unknown') {
       const budget = Number(rawBudget);
-      const vendorFits = vendorState === 'yes' && vendorYearOne <= budget;
-      const internalFits = internalState === 'yes' && internalYearOne <= budget;
+      vendorOverBudget = vendorYearOne > budget;
+      internalOverBudget = internalYearOne > budget;
+      const vendorFits = vendorState === 'yes' && !vendorOverBudget;
+      const internalFits = internalState === 'yes' && !internalOverBudget;
       if (vendorState === 'yes' && internalState === 'yes') {
         if (vendorFits && internalFits) {
           budgetNote = 'Both feasible options fit within your first-year budget.';
         } else if (vendorFits) {
-          budgetNote = 'Only the vendor Year 1 estimate fits within your first-year budget.';
+          budgetNote = 'Only the Buy (vendor) Year 1 estimate fits within your first-year budget.';
         } else if (internalFits) {
-          budgetNote = 'Only the internal Year 1 estimate fits within your first-year budget.';
+          budgetNote = 'Only the Build (internal) Year 1 estimate fits within your first-year budget.';
         } else {
           budgetNote = 'Neither feasible option fits within your first-year budget; consider a scoped trial or deferring.';
         }
       } else if (vendorState === 'yes') {
         budgetNote = vendorFits
-          ? 'The vendor Year 1 estimate fits within your first-year budget.'
-          : 'The vendor Year 1 estimate exceeds your first-year budget; consider a scoped trial or deferring.';
+          ? 'The Buy (vendor) Year 1 estimate fits within your first-year budget.'
+          : 'The Buy (vendor) Year 1 estimate exceeds your first-year budget; consider a scoped trial or deferring.';
       } else if (internalState === 'yes') {
         budgetNote = internalFits
-          ? 'The internal Year 1 estimate fits within your first-year budget.'
-          : 'The internal Year 1 estimate exceeds your first-year budget; consider a scoped pilot or deferring.';
+          ? 'The Build (internal) Year 1 estimate fits within your first-year budget.'
+          : 'The Build (internal) Year 1 estimate exceeds your first-year budget; consider a scoped pilot or deferring.';
       }
+    }
+
+    let zone = null;
+    if (vendorState === 'yes' && internalState === 'yes') {
+      let lean = 'close';
+      if (relDiff > 0.1) lean = diffYearOne > 0 ? 'buy' : 'build';
+      // Piecewise mapping matching 4fr | 2fr | 4fr track (0-40% Buy, 40-60% Close, 60-100% Build)
+      let positionPct;
+      if (relDiff <= 0.1) {
+        const signedRel = maxYearOne > 0 ? -diffYearOne / maxYearOne : 0;
+        positionPct = Math.round(50 + (signedRel / 0.1) * 10);
+      } else {
+        const t = Math.min(1, (relDiff - 0.1) / 0.9);
+        positionPct = diffYearOne > 0
+          ? Math.round(40 - t * 36)
+          : Math.round(60 + t * 36);
+      }
+      const vendorFixedNonSeatYearOne = vendorYearOne - vendorLicense;
+      const vendorFixedNonSeatOngoing = vendorOngoing - vendorLicense;
+      const breakEvenDevsYearOne = n.vendorSeatCostPerDevYear > 0
+        ? Math.max(0, Math.round((internalYearOne - vendorFixedNonSeatYearOne) / n.vendorSeatCostPerDevYear))
+        : null;
+      const breakEvenDevsOngoing = n.vendorSeatCostPerDevYear > 0
+        ? Math.max(0, Math.round((internalOngoing - vendorFixedNonSeatOngoing) / n.vendorSeatCostPerDevYear))
+        : null;
+      zone = { lean, positionPct, relDiffPct: Math.round(relDiff * 100), breakEvenDevsYearOne, breakEvenDevsOngoing };
     }
 
     return {
@@ -154,11 +207,23 @@
       costs: {
         vendor: { license: vendorLicense, overages: n.vendorOverages, setup: n.vendorSetup, evaluation: vendorEvaluation, oversight: vendorOversight, yearOne: vendorYearOne, ongoing: vendorOngoing },
         internal: { tokenCostPerPR, tokens: internalTokens, infrastructure: n.internalInfrastructure, setup: internalSetup, maintenanceYearOne: internalMaintenanceYearOne, maintenance: internalMaintenance, yearOne: internalYearOne, ongoing: internalOngoing },
+        engineeringCostPerDay,
         workWeeksPerYear: WORKING_WEEKS_PER_YEAR,
+        workDaysPerYear: WORKING_DAYS_PER_YEAR,
       },
-      decision: { ...decision, vendorFeasibility: vendorState, internalFeasibility: internalState, capacityNote, ongoingNote, budgetNote },
+      decision: {
+        ...decision,
+        vendorFeasibility: vendorState,
+        internalFeasibility: internalState,
+        capacityNote,
+        ongoingNote,
+        budgetNote,
+        vendorOverBudget,
+        internalOverBudget,
+        zone,
+      },
     };
   }
 
-  return { WORKING_WEEKS_PER_YEAR, REQUIRED_NUMBERS, OPTIONAL_NUMBERS, validate, estimate };
+  return { WORKING_WEEKS_PER_YEAR, WORKING_DAYS_PER_YEAR, ENGINEERING_COST_UNITS, REQUIRED_NUMBERS, OPTIONAL_NUMBERS, validate, estimate };
 });
